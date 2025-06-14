@@ -65,11 +65,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: security-scan
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Testim tests
-      # Add Testim CLI commands here when you're ready
-      run: echo "E2E tests would run here"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Testim tests
+        # Add Testim CLI commands here when you're ready
+        run: echo "E2E tests would run here"
