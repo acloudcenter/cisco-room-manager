@@ -23,6 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# Claude Code configuration (local only)
+CLAUDE.md
 
 pnpm-lock.yaml
 yarn.lock
