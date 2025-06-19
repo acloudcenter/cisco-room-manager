@@ -7,7 +7,7 @@ import { Spacer } from "@heroui/spacer";
 import { Input } from "@heroui/input";
 import { useDisclosure } from "@heroui/modal";
 import { Icon } from "@iconify/react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { sidebarItems } from "@/components/sidebar/sidebar-items";
 import SidebarDrawer from "@/components/sidebar/sidebar-drawer";
@@ -25,7 +25,35 @@ export default function SidebarLayout({
 }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname.split("/")[1] || "devices";
+
+  const handleSidebarSelection = (arg: string | React.SyntheticEvent<HTMLUListElement>) => {
+    if (typeof arg === "string") {
+      const key = arg;
+      // Find the selected item and navigate to its href
+      const findItem = (items: any[]): any => {
+        for (const item of items) {
+          if (item.key === key && item.href) {
+            return item;
+          }
+          if (item.items) {
+            const found = findItem(item.items);
+
+            if (found) return found;
+          }
+        }
+
+        return null;
+      };
+
+      const selectedItem = findItem(sidebarItems);
+
+      if (selectedItem?.href) {
+        navigate(selectedItem.href);
+      }
+    }
+  };
 
   const content = (
     <div className="relative flex h-full w-72 flex-1 flex-col backdrop-blur-xl bg-gradient-to-br from-background/90 via-default-50/90 to-primary-50/90 p-6 border-r border-divider">
@@ -69,7 +97,7 @@ export default function SidebarLayout({
             defaultSelectedKey={currentPath}
             iconClassName="text-default-500 group-data-[selected=true]:text-primary-foreground"
             itemClasses={{
-              base: "data-[selected=true]:bg-primary data-[hover=true]:bg-default-100/40 transition-all duration-200",
+              base: "data-[selected=true]:bg-primary data-[hover=true]:bg-default-100 transition-all duration-200",
               title:
                 "text-default-600 group-data-[selected=true]:text-primary-foreground font-light",
             }}
@@ -79,6 +107,7 @@ export default function SidebarLayout({
             }}
             selectedKeys={[currentPath]}
             variant="flat"
+            onSelect={handleSidebarSelection}
           />
         </ScrollShadow>
 
@@ -143,6 +172,14 @@ export default function SidebarLayout({
             </div>
             <div className="flex items-center gap-4">
               {header}
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                startContent={
+                  <Icon className="text-primary-foreground" icon="solar:link-outline" width={18} />
+                }
+              >
+                Connect to Devices
+              </Button>
               <ThemeSwitch />
             </div>
           </div>
