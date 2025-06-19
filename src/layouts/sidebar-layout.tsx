@@ -13,6 +13,7 @@ import { sidebarItems } from "@/components/sidebar/sidebar-items";
 import SidebarDrawer from "@/components/sidebar/sidebar-drawer";
 import Sidebar from "@/components/sidebar/sidebar";
 import { ThemeSwitch } from "@/components/theme-switch";
+import ConnectDevicesModal from "@/components/connect-devices-modal";
 
 export default function SidebarLayout({
   children,
@@ -24,6 +25,11 @@ export default function SidebarLayout({
   title?: string;
 }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isConnectModalOpen,
+    onOpen: onConnectModalOpen,
+    onOpenChange: onConnectModalOpenChange,
+  } = useDisclosure();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname.split("/")[1] || "devices";
@@ -177,6 +183,7 @@ export default function SidebarLayout({
                 startContent={
                   <Icon className="text-primary-foreground" icon="solar:link-outline" width={18} />
                 }
+                onPress={onConnectModalOpen}
               >
                 Connect to Devices
               </Button>
@@ -188,6 +195,9 @@ export default function SidebarLayout({
         {/* Main Content */}
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
+
+      {/* Connect Devices Modal */}
+      <ConnectDevicesModal isOpen={isConnectModalOpen} onOpenChange={onConnectModalOpenChange} />
     </div>
   );
 }
