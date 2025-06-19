@@ -38,7 +38,7 @@ export default function SidebarLayout({
         />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-2 px-2">
           <h1 className="text-xl font-light text-foreground">Room Manager</h1>
         </div>
@@ -82,8 +82,6 @@ export default function SidebarLayout({
           />
         </ScrollShadow>
 
-        <Spacer y={8} />
-
         <div className="mt-auto flex flex-col gap-2">
           <Button
             fullWidth
@@ -94,6 +92,17 @@ export default function SidebarLayout({
             variant="light"
           >
             Help & Support
+          </Button>
+          <Button
+            fullWidth
+            as="a"
+            className="justify-start text-default-600 data-[hover=true]:bg-default-100/40"
+            href="https://github.com/joshestrada"
+            startContent={<Icon className="text-default-500" icon="mdi:github" width={20} />}
+            target="_blank"
+            variant="light"
+          >
+            GitHub
           </Button>
         </div>
       </div>
