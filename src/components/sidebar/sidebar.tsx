@@ -7,7 +7,6 @@ import {
   ListboxSection,
   type ListboxProps,
   type ListboxSectionProps,
-  type Selection,
 } from "@heroui/listbox";
 import { Tooltip } from "@heroui/tooltip";
 import React from "react";
@@ -275,7 +274,9 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           ),
         }}
         items={items}
-        selectedKeys={[selected] as unknown as Selection}
+        selectedKeys={
+          typeof selected === "string" || typeof selected === "number" ? [selected] : undefined
+        }
         selectionMode="single"
         variant="flat"
         onSelectionChange={(keys) => {
