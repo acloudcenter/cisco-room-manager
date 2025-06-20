@@ -17,7 +17,7 @@ const deviceConfig = {
 
 // Validate environment variables
 if (!deviceConfig.host || !deviceConfig.username || !deviceConfig.password) {
-  console.error("❌ Missing required environment variables:");
+  console.error("Missing required environment variables:");
   if (!deviceConfig.host) console.error("  - TSD_IPADDRESS");
   if (!deviceConfig.username) console.error("  - TSD_USERNAME");
   if (!deviceConfig.password) console.error("  - TSD_PASSWORD");

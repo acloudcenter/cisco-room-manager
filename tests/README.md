@@ -223,6 +223,11 @@ Tests run automatically on:
 
 The CI pipeline requires all tests to pass before merging.
 
+## Additional Documentation
+
+- **[Connection Best Practices](docs/CONNECTION_BEST_PRACTICES.md)** - WebSocket connection management patterns
+- **[Cleanup Summary](docs/CLEANUP_SUMMARY.md)** - Record of test directory organization
+
 ## Device Connection Tests
 
 These tests verify actual connections to Cisco devices. They require a real device with WebSocket enabled.
@@ -242,38 +247,17 @@ These tests verify actual connections to Cisco devices. They require a real devi
 
 ### Running Connection Tests
 
-#### 1. TypeScript Connection Test
+#### 1. Basic Connection Test
 
 ```bash
-# Run the TypeScript test in services folder
+# Run the basic connection test
 npx tsx tests/services/test-single-device.ts
 ```
 
-#### 2. WebSocket Connection Test
+#### 2. Connection Cleanup Test
 
 ```bash
-# Test WebSocket connection after enabling
-node tests/test-websocket-enabled.js
-```
-
-#### 3. Simple HTTP Test
-
-```bash
-# Check device API endpoints
-node tests/simple-http-test.js
-```
-
-#### 4. Debug Connection
-
-```bash
-# Diagnose connection issues
-node tests/debug-connection.js
-```
-
-#### 5. Connection Cleanup Test
-
-```bash
-# Test proper WebSocket cleanup
+# Test proper WebSocket cleanup and resource management
 npx tsx tests/services/test-connection-cleanup.ts
 ```
 
