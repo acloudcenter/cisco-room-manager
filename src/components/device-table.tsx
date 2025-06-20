@@ -214,6 +214,17 @@ export default function DeviceTable() {
   // Use mock data for testing when no real devices are connected
   const displayDevices = devices.length > 0 ? devices : mockDevices;
 
+  // Helper function to get selected count
+  const getSelectedCount = React.useCallback(() => {
+    if (selectedKeys === "all") return displayDevices.length;
+
+    return (selectedKeys as Set<React.Key>).size;
+  }, [selectedKeys, displayDevices.length]);
+
+  const hasSelection = React.useCallback(() => {
+    return selectedKeys === "all" || (selectedKeys as Set<React.Key>).size > 0;
+  }, [selectedKeys]);
+
   // Transform devices into table row data
   const tableData: DeviceTableRowData[] = React.useMemo(() => {
     return displayDevices.map((device) => ({
@@ -278,6 +289,30 @@ export default function DeviceTable() {
     setSelectedDevice(device);
     setDrawerAction(action);
     onOpen();
+  };
+
+  const handleBulkAction = (action: string) => {
+    // For bulk actions, we'll use the first selected device as representative
+    // In a real implementation, this would handle multiple devices
+
+    if (selectedKeys === "all") {
+      // Handle "select all" case
+      setSelectedDevice(displayDevices[0]);
+      setDrawerAction(`bulk-${action}`);
+      onOpen();
+
+      return;
+    }
+
+    const selectedDevices = Array.from(selectedKeys)
+      .map((key) => displayDevices.find((device) => device.id === key))
+      .filter(Boolean) as ConnectedDevice[];
+
+    if (selectedDevices.length > 0) {
+      setSelectedDevice(selectedDevices[0]);
+      setDrawerAction(`bulk-${action}`);
+      onOpen();
+    }
   };
 
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
@@ -407,6 +442,31 @@ export default function DeviceTable() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            <Dropdown isDisabled={false}>
+              <DropdownTrigger>
+                <Button
+                  color={hasSelection() ? "primary" : "default"}
+                  endContent={<ChevronDownIcon className="text-small" />}
+                  variant={hasSelection() ? "solid" : "flat"}
+                >
+                  Actions {hasSelection() ? `(${getSelectedCount()})` : ""}
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Bulk Actions">
+                <DropdownItem key="bulk-monitor" onPress={() => handleBulkAction("monitor")}>
+                  Monitor Selected
+                </DropdownItem>
+                <DropdownItem key="bulk-configure" onPress={() => handleBulkAction("configure")}>
+                  Configure Selected
+                </DropdownItem>
+                <DropdownItem key="bulk-provision" onPress={() => handleBulkAction("provision")}>
+                  Provision Selected
+                </DropdownItem>
+                <DropdownItem key="bulk-disconnect" onPress={() => handleBulkAction("disconnect")}>
+                  Disconnect Selected
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -549,11 +609,16 @@ export default function DeviceTable() {
           <DrawerHeader className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <Icon className="text-primary" height={24} icon="heroicons:cog-6-tooth" width={24} />
-              <h2 className="text-xl font-semibold">{capitalize(drawerAction)} Device</h2>
+              <h2 className="text-xl font-semibold">
+                {capitalize(drawerAction.replace("bulk-", ""))} Device
+                {drawerAction.startsWith("bulk-") ? "s" : ""}
+              </h2>
             </div>
             {selectedDevice && (
               <p className="text-small text-default-500">
-                {selectedDevice.info.unitName} ({selectedDevice.credentials.host})
+                {drawerAction.startsWith("bulk-")
+                  ? `${selectedKeys.size} devices selected`
+                  : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
               </p>
             )}
           </DrawerHeader>
@@ -561,13 +626,24 @@ export default function DeviceTable() {
             <div className="flex flex-col gap-4">
               <div className="p-4 bg-default-100 rounded-lg">
                 <p className="text-center text-default-600">
-                  {capitalize(drawerAction)} functionality will be implemented here.
+                  {drawerAction.startsWith("bulk-") ? (
+                    <>
+                      Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
+                      implemented here.
+                    </>
+                  ) : (
+                    <>{capitalize(drawerAction)} functionality will be implemented here.</>
+                  )}
                 </p>
                 <div className="mt-4 flex justify-center">
                   <Icon
                     className="text-default-400"
                     height={48}
-                    icon="heroicons:wrench-screwdriver"
+                    icon={
+                      drawerAction.startsWith("bulk-")
+                        ? "heroicons:squares-2x2"
+                        : "heroicons:wrench-screwdriver"
+                    }
                     width={48}
                   />
                 </div>
