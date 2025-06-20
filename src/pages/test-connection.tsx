@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Input, Card, CardBody, CardHeader, Chip } from "@heroui/react";
 
 import { ciscoConnectionService } from "@/services/cisco-connection-service";
