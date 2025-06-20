@@ -261,6 +261,13 @@ npx tsx tests/services/test-single-device.ts
 npx tsx tests/services/test-connection-cleanup.ts
 ```
 
+#### 3. Status Queries Test
+
+```bash
+# Test device status query functions
+npx tsx tests/services/test-status-queries.ts
+```
+
 ### Configuration for Connection Tests
 
 The connection tests now use environment variables for security. Create a `.env` file in the project root:
