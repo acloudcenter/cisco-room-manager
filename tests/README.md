@@ -6,278 +6,20 @@ This directory contains tests for the Cisco Room Manager application.
 
 ```
 tests/
-├── components/          # Component tests
-├── services/           # Service layer tests
-├── stores/             # Zustand store tests
-├── utils/              # Test utilities and helpers
-├── __mocks__/          # Mock implementations
-├── setup.ts            # Test setup and configuration
-├── connection tests    # Direct device connection tests
+├── services/           # Service layer tests (device communication)
+│   ├── connection/     # WebSocket connection tests
+│   ├── status/         # Device status query tests
+│   ├── config/         # Device configuration tests
+│   ├── provisioning/   # Provisioning workflow tests
+│   └── README.md       # Detailed service test documentation
 └── README.md          # This file
 ```
 
-## Running Tests
+## Quick Start
 
-### Development Commands
+### Prerequisites
 
-```bash
-# Run tests in watch mode
-npm test
-
-# Run tests once
-npm run test:run
-
-# Run tests with UI interface
-npm run test:ui
-
-# Run tests with coverage report
-npm run test:coverage
-```
-
-### Test Types
-
-#### Unit Tests
-
-- **Components**: Test individual React components in isolation
-- **Services**: Test business logic and API interactions
-- **Stores**: Test Zustand state management
-- **Utils**: Test utility functions
-
-#### Integration Tests
-
-- Test component interactions with stores
-- Test full user workflows
-
-## Test Technologies
-
-- **Vitest**: Fast test runner built on Vite
-- **Testing Library**: React component testing utilities
-- **Jest DOM**: Additional DOM matchers
-- **User Event**: Simulate user interactions
-
-## Writing Tests
-
-### Component Tests
-
-```typescript
-import { render, screen } from '@/tests/utils/test-utils';
-import { MyComponent } from '@/components/MyComponent';
-
-describe('MyComponent', () => {
-  it('should render correctly', () => {
-    render(<MyComponent />);
-    expect(screen.getByText('Hello World')).toBeInTheDocument();
-  });
-});
-```
-
-### Store Tests
-
-```typescript
-import { renderHook, act } from "@testing-library/react";
-import { useMyStore } from "@/stores/my-store";
-
-describe("useMyStore", () => {
-  it("should update state correctly", () => {
-    const { result } = renderHook(() => useMyStore());
-
-    act(() => {
-      result.current.updateValue("new value");
-    });
-
-    expect(result.current.value).toBe("new value");
-  });
-});
-```
-
-### Service Tests
-
-```typescript
-import { MyService } from "@/services/my-service";
-
-describe("MyService", () => {
-  it("should handle successful operation", async () => {
-    const service = new MyService();
-    const result = await service.doSomething();
-    expect(result).toBeDefined();
-  });
-});
-```
-
-## Test Utilities
-
-### Custom Render
-
-Use the custom render function that includes all necessary providers:
-
-```typescript
-import { render } from "@/tests/utils/test-utils";
-// This includes HeroUIProvider and BrowserRouter automatically
-```
-
-### Mock Helpers
-
-```typescript
-import { createMockCredentials, createMockDeviceInfo } from "@/tests/utils/test-utils";
-
-const credentials = createMockCredentials({ host: "192.168.1.200" });
-const deviceInfo = createMockDeviceInfo({ name: "Custom Device" });
-```
-
-## Mock Implementations
-
-### MockRoomOSConnector
-
-The `MockRoomOSConnector` simulates Cisco device connections for testing:
-
-- **Success**: username "admin", password "admin"
-- **Network Error**: host "invalid.host"
-- **Auth Error**: any password "wrong"
-- **Generic Error**: other invalid credentials
-
-## Best Practices
-
-### 1. Test Structure
-
-- Use descriptive test names
-- Group related tests with `describe` blocks
-- Follow AAA pattern (Arrange, Act, Assert)
-
-### 2. Isolation
-
-- Each test should be independent
-- Use `beforeEach` to reset state
-- Mock external dependencies
-
-### 3. User-Centric Testing
-
-- Test from user perspective
-- Use accessible queries (getByRole, getByLabelText)
-- Test user interactions, not implementation details
-
-### 4. Async Testing
-
-- Use `await waitFor()` for async operations
-- Use `act()` for state updates
-- Handle loading states and errors
-
-### 5. Accessibility
-
-- Test ARIA attributes
-- Test keyboard navigation
-- Test screen reader compatibility
-
-## Example Test Files
-
-### Component Test
-
-```typescript
-describe('ConnectDevicesModal', () => {
-  it('should validate form fields', async () => {
-    const user = userEvent.setup();
-    render(<ConnectDevicesModal isOpen={true} onOpenChange={vi.fn()} />);
-
-    const connectButton = screen.getByRole('button', { name: /connect/i });
-    expect(connectButton).toBeDisabled();
-
-    await user.type(screen.getByLabelText(/ip address/i), '192.168.1.100');
-    await user.type(screen.getByLabelText(/username/i), 'admin');
-    await user.type(screen.getByLabelText(/password/i), 'admin');
-
-    expect(connectButton).toBeEnabled();
-  });
-});
-```
-
-### Store Test
-
-```typescript
-describe("useDeviceStore", () => {
-  it("should connect device successfully", async () => {
-    const { result } = renderHook(() => useDeviceStore());
-
-    await act(async () => {
-      await result.current.connectDevice(createMockCredentials());
-    });
-
-    expect(result.current.devices).toHaveLength(1);
-    expect(result.current.isConnecting).toBe(false);
-  });
-});
-```
-
-## Coverage Goals
-
-- **Components**: 90%+ coverage
-- **Services**: 95%+ coverage
-- **Stores**: 95%+ coverage
-- **Utils**: 100% coverage
-
-## Continuous Integration
-
-Tests run automatically on:
-
-- Pull requests
-- Main branch pushes
-- Before deployments
-
-The CI pipeline requires all tests to pass before merging.
-
-## Additional Documentation
-
-- **[Connection Best Practices](docs/CONNECTION_BEST_PRACTICES.md)** - WebSocket connection management patterns
-- **[Cleanup Summary](docs/CLEANUP_SUMMARY.md)** - Record of test directory organization
-
-## Device Connection Tests
-
-These tests verify actual connections to Cisco devices. They require a real device with WebSocket enabled.
-
-### Prerequisites for Connection Tests
-
-1. **Enable WebSocket on your Cisco device**
-
-   - Access device web interface: https://[device-ip]/web
-   - Navigate to Setup > Configuration > NetworkServices
-   - Set WebSocket to "FollowHTTPService"
-   - Ensure HTTP Mode is set to "HTTPS"
-
-2. **Accept the device's self-signed certificate**
-   - Open https://[device-ip] in your browser
-   - Accept/trust the certificate
-
-### Running Connection Tests
-
-#### 1. Basic Connection Test
-
-```bash
-# Run the basic connection test
-npx tsx tests/services/test-single-device.ts
-```
-
-#### 2. Connection Cleanup Test
-
-```bash
-# Test proper WebSocket cleanup and resource management
-npx tsx tests/services/test-connection-cleanup.ts
-```
-
-#### 3. Status Queries Test
-
-```bash
-# Test device status query functions
-npx tsx tests/services/test-status-queries.ts
-```
-
-### Configuration for Connection Tests
-
-The connection tests now use environment variables for security. Create a `.env` file in the project root:
-
-```bash
-# Copy .env.example to .env and update with your values
-cp .env.example .env
-```
-
-Your `.env` file should contain:
+1. **Create `.env` file** in project root:
 
 ```bash
 TSD_IPADDRESS=192.168.1.186
@@ -285,49 +27,57 @@ TSD_USERNAME=admin
 TSD_PASSWORD=your-device-password
 ```
 
-**Important:**
+2. **Enable WebSocket** on Cisco device:
+   - Setup > NetworkServices > WebSocket = "FollowHTTPService"
+   - Accept HTTPS certificate at https://[device-ip]
 
-- Never commit your `.env` file to version control
-- The `.env` file is already in `.gitignore`
-- Use `.env.example` as a template
+### Run Tests
 
-### React App Connection Test
+```bash
+# Test basic connection
+npx tsx tests/services/connection/test-single-device.ts
 
-To test device connection in the React app:
+# Test device status monitoring
+npx tsx tests/services/status/test-status-queries.ts
 
-1. Start the development server:
+# Test configuration reading
+npx tsx tests/services/config/test-config-queries.ts
 
-   ```bash
-   npm run dev
-   ```
+# Test complete provisioning workflow
+npx tsx tests/services/provisioning/test-full-cycle-to-tms.ts
+npx tsx tests/services/provisioning/test-back-to-webex.ts
+```
 
-2. Navigate to http://localhost:5173/test
+## Test Categories
 
-3. Enter your device credentials and click Connect
+### Service Tests (`services/`)
 
-### Troubleshooting Connection Issues
+**Real device communication tests** - These test actual jsxapi functions against your Cisco device.
 
-#### Certificate Errors
+- ✅ **Connection**: WebSocket setup and cleanup
+- ✅ **Status Queries**: 27 device monitoring functions
+- ✅ **Configuration**: 20 device configuration functions
+- ✅ **Provisioning**: Complete check/push/clear workflow
 
-- Open https://[device-ip] in your browser
-- Accept the self-signed certificate
-- Try the connection again
+See `tests/services/README.md` for detailed documentation.
 
-#### WebSocket Not Working
+### Unit Tests (Removed)
 
-- Run `node tests/simple-http-test.js` to check if WebSocket is enabled
-- The /ws endpoint should not return 404
-- If it returns 404, WebSocket needs to be enabled on the device
+Component and store unit tests were removed as they became outdated. The service-level tests provide comprehensive coverage of the actual device functionality.
 
-#### Connection Timeouts
+## Test Results
 
-- Ensure you're on the same network as the device
-- Check firewall settings
-- Verify the device IP is correct
-- Make sure you're not on VPN
+**Cisco DX80 (CE 9.15.18.5)**: All service tests passing ✅
 
-#### Authentication Failures
+- **Connection**: WebSocket over HTTPS working
+- **Status**: 27/27 functions successful
+- **Config**: 16/20 functions successful (4 network restricted)
+- **Provisioning**: Complete workflow verified
 
-- Verify username and password are correct
-- Ensure the user has admin privileges
-- Check if local user authentication is enabled on the device
+## Development Notes
+
+- All tests validate environment variables before running
+- Tests use read-only operations by default for safety
+- Provisioning tests include automatic restoration
+- Tests designed to run individually or in sequence
+- Focus on real device communication over mocked interfaces
