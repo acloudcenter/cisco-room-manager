@@ -331,13 +331,13 @@ export default function DeviceTable() {
       case "ipAddress":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small font-mono">{cellValue}</p>
+            <p className="text-bold text-small font-mono">{device.ipAddress}</p>
           </div>
         );
       case "type":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small">{cellValue}</p>
+            <p className="text-bold text-small">{device.type}</p>
           </div>
         );
       case "status":
@@ -348,13 +348,13 @@ export default function DeviceTable() {
             size="sm"
             variant="flat"
           >
-            {cellValue}
+            {device.status}
           </Chip>
         );
       case "firmware":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small font-mono">{cellValue}</p>
+            <p className="text-bold text-small font-mono">{device.firmware}</p>
           </div>
         );
       case "actions":
@@ -393,7 +393,7 @@ export default function DeviceTable() {
           </div>
         );
       default:
-        return cellValue;
+        return String(cellValue);
     }
   }, []);
 
@@ -543,7 +543,7 @@ export default function DeviceTable() {
         <span className="w-[30%] text-small text-default-400">
           {selectedKeys === "all"
             ? "All items selected"
-            : `${selectedKeys.size} of ${filteredItems.length} selected`}
+            : `${getSelectedCount()} of ${filteredItems.length} selected`}
         </span>
         <Pagination
           isCompact
@@ -617,7 +617,7 @@ export default function DeviceTable() {
             {selectedDevice && (
               <p className="text-small text-default-500">
                 {drawerAction.startsWith("bulk-")
-                  ? `${selectedKeys.size} devices selected`
+                  ? `${getSelectedCount()} devices selected`
                   : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
               </p>
             )}
