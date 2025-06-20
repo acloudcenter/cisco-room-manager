@@ -14,6 +14,8 @@ import {
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
+import { useDeviceStore } from "@/stores/device-store";
+
 interface ConnectDevicesModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,18 +29,37 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
     password: "",
   });
 
+  const { connectDevice, isConnecting, connectionError, clearConnectionError } = useDeviceStore();
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (connectionError) {
+      clearConnectionError();
+    }
   };
 
-  const handleConnect = () => {
-    // TODO: Implement connection logic
-    onOpenChange(false);
+  const handleConnect = async () => {
+    try {
+      await connectDevice({
+        host: formData.ipAddress,
+        username: formData.username,
+        password: formData.password,
+      });
+
+      // Success - close modal and reset form
+      setFormData({ ipAddress: "", username: "", password: "" });
+      onOpenChange(false);
+    } catch (error) {
+      // Error is handled by the store and will be displayed in UI
+      console.error("Connection failed:", error);
+    }
   };
 
   const handleCancel = () => {
     // Reset form and close modal
     setFormData({ ipAddress: "", username: "", password: "" });
+    clearConnectionError();
     onOpenChange(false);
   };
 
@@ -62,6 +83,7 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
 
         <ModalBody>
           <Tabs
+            aria-label="Connection type selection"
             classNames={{
               tabList: "bg-default-100/50 p-1 rounded-lg",
               tab: "px-6 py-3 data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground",
@@ -73,6 +95,22 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
           >
             <Tab key="single" title="Single Device">
               <div className="space-y-6 mt-6">
+                {connectionError && (
+                  <div className="p-3 rounded-lg bg-danger-50 border border-danger-200">
+                    <div className="flex items-start gap-3">
+                      <Icon
+                        className="text-danger-500 mt-0.5"
+                        icon="solar:danger-triangle-outline"
+                        width={18}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-danger-700">Connection Failed</p>
+                        <p className="text-sm text-danger-600 mt-1">{connectionError}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label
                     className="text-sm font-medium text-foreground mb-2 block"
@@ -161,11 +199,20 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
           <Button
             className="bg-primary text-primary-foreground"
             color="primary"
-            endContent={<Icon icon="solar:arrow-right-outline" width={16} />}
-            isDisabled={!formData.ipAddress || !formData.username || !formData.password}
+            endContent={
+              isConnecting ? (
+                <Icon className="animate-spin" icon="solar:loading-outline" width={16} />
+              ) : (
+                <Icon icon="solar:arrow-right-outline" width={16} />
+              )
+            }
+            isDisabled={
+              !formData.ipAddress || !formData.username || !formData.password || isConnecting
+            }
+            isLoading={isConnecting}
             onPress={handleConnect}
           >
-            Connect
+            {isConnecting ? "Connecting..." : "Connect"}
           </Button>
         </ModalFooter>
       </ModalContent>
