@@ -36,6 +36,7 @@ import {
   CurrentConfigDisplay,
   ProvisioningFormData,
 } from "@/components/provisioning";
+import { DeviceMonitorDisplay } from "@/components/monitoring";
 import { applyTmsConfiguration, clearToWebexMode } from "@/lib/provisioning";
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
@@ -678,6 +679,8 @@ export default function DeviceTable() {
               ) : (
                 <CurrentConfigDisplay device={selectedDevice} onEdit={handleProvisioningEdit} />
               )
+            ) : drawerAction === "monitor" && selectedDevice ? (
+              <DeviceMonitorDisplay device={selectedDevice} />
             ) : (
               <div className="flex flex-col gap-4">
                 <div className="p-4 bg-default-100 rounded-lg">
