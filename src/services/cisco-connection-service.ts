@@ -50,6 +50,7 @@ class CiscoConnectionService {
     this.connection = "connecting";
 
     return new Promise((resolve) => {
+      // @ts-ignore - jsxapi connect returns EventEmitter but TypeScript infers it as Promise
       jsxapi
         .connect(`wss://${host}`, { username, password })
         .on("ready", async (xapi: any) => {

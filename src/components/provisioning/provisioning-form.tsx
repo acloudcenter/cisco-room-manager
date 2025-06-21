@@ -120,12 +120,8 @@ export default function ProvisioningForm({
               handleModeChange(mode);
             }}
           >
-            <SelectItem key="Webex" value="Webex">
-              Webex
-            </SelectItem>
-            <SelectItem key="TMS" value="TMS">
-              TMS (Telepresence Management Suite)
-            </SelectItem>
+            <SelectItem key="Webex">Webex</SelectItem>
+            <SelectItem key="TMS">TMS (Telepresence Management Suite)</SelectItem>
           </Select>
           <p className="text-xs text-default-400 mt-2">
             {formData.mode === "Webex"
@@ -311,12 +307,8 @@ export default function ProvisioningForm({
                 }));
               }}
             >
-              <SelectItem key="HTTP" value="HTTP">
-                HTTP
-              </SelectItem>
-              <SelectItem key="HTTPS" value="HTTPS">
-                HTTPS
-              </SelectItem>
+              <SelectItem key="HTTP">HTTP</SelectItem>
+              <SelectItem key="HTTPS">HTTPS</SelectItem>
             </Select>
           </CardBody>
         </Card>

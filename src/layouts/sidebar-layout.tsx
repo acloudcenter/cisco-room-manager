@@ -73,6 +73,7 @@ export default function SidebarLayout({
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-2 px-2">
+          <img alt="Logo" className="w-6 h-6" src="/images/logo.svg" />
           <h1 className="text-xl font-light text-foreground">Room Manager</h1>
         </div>
         <p className="text-xs text-default-500 mt-1 px-2">An open source tool for Cisco Devices</p>

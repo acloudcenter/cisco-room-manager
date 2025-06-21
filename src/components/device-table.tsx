@@ -318,7 +318,7 @@ export default function DeviceTable() {
     }
   };
 
-  const handleProvisioningSubmit = async (data: ProvisioningFormData) => {
+  const handleProvisioningSubmit = async (_data: ProvisioningFormData) => {
     // TODO: Implement actual provisioning API calls
     // For now, just close the drawer
     onClose();
