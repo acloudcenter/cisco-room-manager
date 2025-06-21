@@ -179,13 +179,18 @@ export default function SidebarLayout({
             <div className="flex items-center gap-4">
               {header}
               <Button
+                data-connect-devices-button
                 className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
                 startContent={
-                  <Icon className="text-primary-foreground" icon="solar:link-outline" width={18} />
+                  <Icon
+                    className="text-primary-foreground"
+                    icon="solar:add-circle-outline"
+                    width={18}
+                  />
                 }
                 onPress={onConnectModalOpen}
               >
-                Connect to Devices
+                Add Device
               </Button>
               <ThemeSwitch />
             </div>

@@ -39,11 +39,15 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     set({ isConnecting: true, connectionError: null });
 
     try {
-      // Use the Cisco connection service
-      await ciscoConnectionService.connect(credentials);
+      // Use the Cisco connection service - returns boolean
+      const connected = await ciscoConnectionService.connect(credentials);
+
+      if (!connected) {
+        throw new Error("Failed to establish connection - check device logs for details");
+      }
 
       // Wait a bit for device info to be populated
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const deviceInfo = ciscoConnectionService.getDeviceInfo();
       const connectionState = ciscoConnectionService.getConnectionState();
@@ -52,7 +56,10 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
         const connectedDevice: ConnectedDevice = {
           id: `device_${credentials.host.replace(/[^\w]/g, "_")}`,
           info: deviceInfo,
-          credentials,
+          credentials: {
+            ...credentials,
+            password: "***", // Don't store password in state
+          },
           connectionState,
           connectedAt: new Date(),
         };
@@ -63,7 +70,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
           connectionError: null,
         });
       } else {
-        throw new Error("Failed to establish connection");
+        throw new Error("Failed to retrieve device information");
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Connection failed";

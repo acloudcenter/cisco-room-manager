@@ -133,54 +133,34 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 
 const INITIAL_VISIBLE_COLUMNS = ["roomName", "ipAddress", "type", "status", "firmware", "actions"];
 
-// Mock data for testing when no devices are connected
-const mockDevices: ConnectedDevice[] = [
-  {
-    id: "device_192_168_1_100",
-    info: {
-      unitName: "Conference Room A",
-      unitType: "Cisco DX80",
-      host: "192.168.1.100",
-    },
-    credentials: {
-      host: "192.168.1.100",
-      username: "admin",
-      password: "***",
-    },
-    connectionState: "connected",
-    connectedAt: new Date(),
-  },
-  {
-    id: "device_192_168_1_101",
-    info: {
-      unitName: "Meeting Room B",
-      unitType: "Cisco Room Kit",
-      host: "192.168.1.101",
-    },
-    credentials: {
-      host: "192.168.1.101",
-      username: "admin",
-      password: "***",
-    },
-    connectionState: "connected",
-    connectedAt: new Date(),
-  },
-  {
-    id: "device_192_168_1_102",
-    info: {
-      unitName: "Boardroom",
-      unitType: "Cisco Room 70",
-      host: "192.168.1.102",
-    },
-    credentials: {
-      host: "192.168.1.102",
-      username: "admin",
-      password: "***",
-    },
-    connectionState: "failed",
-    connectedAt: new Date(),
-  },
-];
+// Empty state component
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-16">
+    <Icon className="text-default-300 mb-4" icon="solar:monitor-outline" width={64} />
+    <h3 className="text-lg font-semibold text-default-600 mb-2">No Devices Connected</h3>
+    <p className="text-default-400 text-center max-w-md mb-6">
+      Connect to a Cisco room device to monitor status, configure settings, and manage provisioning.
+      <br />
+      <span className="text-sm">
+        To get started, click the <strong>Add Device</strong> button in the top right.
+      </span>
+    </p>
+    <Button
+      color="primary"
+      startContent={<Icon icon="solar:add-circle-outline" width={20} />}
+      onPress={() => {
+        // Trigger the connect modal from header
+        const connectButton = document.querySelector("[data-connect-devices-button]");
+
+        if (connectButton) {
+          (connectButton as HTMLButtonElement).click();
+        }
+      }}
+    >
+      Add Device
+    </Button>
+  </div>
+);
 
 interface DeviceTableRowData {
   id: string;
@@ -193,7 +173,7 @@ interface DeviceTableRowData {
 }
 
 export default function DeviceTable() {
-  const { devices } = useDeviceStore();
+  const { devices, disconnectDevice } = useDeviceStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [filterValue, setFilterValue] = React.useState("");
@@ -211,19 +191,17 @@ export default function DeviceTable() {
   const [selectedDevice, setSelectedDevice] = React.useState<ConnectedDevice | null>(null);
   const [drawerAction, setDrawerAction] = React.useState<string>("");
 
-  // Use mock data for testing when no real devices are connected
-  const displayDevices = devices.length > 0 ? devices : mockDevices;
+  // Get devices from store
+  const displayDevices = devices;
 
-  // Helper function to get selected count
-  const getSelectedCount = React.useCallback(() => {
+  // Get selected count
+  const selectedCount = React.useMemo(() => {
     if (selectedKeys === "all") return displayDevices.length;
 
     return (selectedKeys as Set<React.Key>).size;
   }, [selectedKeys, displayDevices.length]);
 
-  const hasSelection = React.useCallback(() => {
-    return selectedKeys === "all" || (selectedKeys as Set<React.Key>).size > 0;
-  }, [selectedKeys]);
+  const hasSelection = selectedCount > 0;
 
   // Transform devices into table row data
   const tableData: DeviceTableRowData[] = React.useMemo(() => {
@@ -233,7 +211,7 @@ export default function DeviceTable() {
       ipAddress: device.credentials.host,
       type: device.info.unitType || "Unknown Type",
       status: device.connectionState,
-      firmware: "CE 9.15.18.5", // Placeholder for firmware version
+      firmware: "Unknown", // TODO: Get from device status query
       device,
     }));
   }, [displayDevices]);
@@ -286,30 +264,25 @@ export default function DeviceTable() {
   }, [sortDescriptor, items]);
 
   const handleAction = (device: ConnectedDevice, action: string) => {
+    if (action === "disconnect") {
+      // Handle disconnect directly
+      if (confirm(`Disconnect from ${device.info.unitName}?`)) {
+        disconnectDevice();
+      }
+
+      return;
+    }
+
+    // For other actions, open the drawer
     setSelectedDevice(device);
     setDrawerAction(action);
     onOpen();
   };
 
   const handleBulkAction = (action: string) => {
-    // For bulk actions, we'll use the first selected device as representative
-    // In a real implementation, this would handle multiple devices
-
-    if (selectedKeys === "all") {
-      // Handle "select all" case
+    // Simple: just use first available device and mark as bulk action
+    if (displayDevices.length > 0) {
       setSelectedDevice(displayDevices[0]);
-      setDrawerAction(`bulk-${action}`);
-      onOpen();
-
-      return;
-    }
-
-    const selectedDevices = Array.from(selectedKeys)
-      .map((key) => displayDevices.find((device) => device.id === key))
-      .filter(Boolean) as ConnectedDevice[];
-
-    if (selectedDevices.length > 0) {
-      setSelectedDevice(selectedDevices[0]);
       setDrawerAction(`bulk-${action}`);
       onOpen();
     }
@@ -442,14 +415,15 @@ export default function DeviceTable() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
-            <Dropdown isDisabled={false}>
+            <Dropdown isDisabled={selectedCount === 0}>
               <DropdownTrigger>
                 <Button
-                  color={hasSelection() ? "primary" : "default"}
+                  color={selectedCount > 0 ? "primary" : "default"}
                   endContent={<ChevronDownIcon className="text-small" />}
-                  variant={hasSelection() ? "solid" : "flat"}
+                  isDisabled={selectedCount === 0}
+                  variant={selectedCount > 0 ? "solid" : "flat"}
                 >
-                  Actions {hasSelection() ? `(${getSelectedCount()})` : ""}
+                  Actions {selectedCount > 0 ? `(${selectedCount})` : ""}
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Bulk Actions">
@@ -535,6 +509,9 @@ export default function DeviceTable() {
     onRowsPerPageChange,
     displayDevices.length,
     hasSearchFilter,
+    selectedCount,
+    hasSelection,
+    handleBulkAction,
   ]);
 
   const bottomContent = React.useMemo(() => {
@@ -543,7 +520,7 @@ export default function DeviceTable() {
         <span className="w-[30%] text-small text-default-400">
           {selectedKeys === "all"
             ? "All items selected"
-            : `${getSelectedCount()} of ${filteredItems.length} selected`}
+            : `${selectedCount} of ${filteredItems.length} selected`}
         </span>
         <Pagination
           isCompact
@@ -595,7 +572,7 @@ export default function DeviceTable() {
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody emptyContent={"No devices found"} items={sortedItems}>
+        <TableBody emptyContent={<EmptyState />} items={sortedItems}>
           {(item) => (
             <TableRow key={item.id}>
               {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
@@ -617,7 +594,7 @@ export default function DeviceTable() {
             {selectedDevice && (
               <p className="text-small text-default-500">
                 {drawerAction.startsWith("bulk-")
-                  ? `${getSelectedCount()} devices selected`
+                  ? `${selectedCount} devices selected`
                   : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
               </p>
             )}
