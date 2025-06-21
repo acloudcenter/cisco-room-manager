@@ -1,0 +1,222 @@
+/**
+ * Current Configuration Display Component
+ * Shows read-only view of device's current provisioning configuration
+ */
+
+import type { ConnectedDevice } from "@/stores/device-store";
+
+import React from "react";
+import { Button, Card, CardBody, CardHeader, Chip, Divider, CircularProgress } from "@heroui/react";
+import { Icon } from "@iconify/react";
+
+import { useDeviceStore } from "@/stores/device-store";
+import { getCurrentProvisioningConfig } from "@/lib/provisioning";
+
+interface CurrentConfigDisplayProps {
+  device: ConnectedDevice;
+  onEdit: () => void;
+}
+
+interface ProvisioningConfig {
+  mode: string;
+  connectivity?: string;
+  loginName?: string;
+  password?: string;
+  externalManagerAddress?: string;
+  externalManagerDomain?: string;
+  externalManagerPath?: string;
+  externalManagerProtocol?: string;
+}
+
+export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDisplayProps) {
+  const { isProvisioning, provisioningProgress, provisioningError } = useDeviceStore();
+  const [config, setConfig] = React.useState<ProvisioningConfig | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const loadCurrentConfig = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const currentConfig = await getCurrentProvisioningConfig(device);
+
+      setConfig(currentConfig);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to read configuration";
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    loadCurrentConfig();
+  }, [device]);
+
+  if (isLoading) {
+    return (
+      <Card className="bg-default-50">
+        <CardBody className="flex flex-row items-center gap-4 p-6">
+          <CircularProgress size="md" />
+          <div>
+            <p className="text-sm font-medium">Reading Configuration...</p>
+            <p className="text-xs text-default-500">
+              {provisioningProgress || "Connecting to device..."}
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-danger-50 border-danger-200">
+        <CardBody className="p-4">
+          <div className="flex items-start gap-3">
+            <Icon
+              className="text-danger-500 mt-0.5"
+              icon="solar:danger-circle-outline"
+              width={20}
+            />
+            <div className="flex flex-col">
+              <p className="text-sm font-medium text-danger-700">Failed to Read Configuration</p>
+              <p className="text-xs text-danger-600 mt-1">{error}</p>
+              <Button
+                className="mt-2 w-fit"
+                color="danger"
+                size="sm"
+                variant="light"
+                onPress={loadCurrentConfig}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const getModeColor = (mode: string) => {
+    switch (mode) {
+      case "Webex":
+        return "success";
+      case "TMS":
+        return "primary";
+      case "CUCM":
+        return "warning";
+      default:
+        return "default";
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Icon className="text-primary" icon="solar:monitor-outline" width={24} />
+          <div>
+            <h3 className="text-lg font-semibold">Current Device Configuration</h3>
+            <p className="text-sm text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            isDisabled={isProvisioning}
+            size="sm"
+            startContent={<Icon icon="solar:refresh-outline" width={16} />}
+            variant="light"
+            onPress={loadCurrentConfig}
+          >
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Configuration Display */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <h4 className="text-md font-medium">Provisioning Status</h4>
+            <Chip color={getModeColor(config?.mode || "")} size="sm" variant="flat">
+              {config?.mode || "Unknown"}
+            </Chip>
+          </div>
+        </CardHeader>
+        <CardBody className="pt-0 space-y-3">
+          {/* Basic Info */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-default-500">Mode</p>
+              <p className="font-medium">{config?.mode || "Not configured"}</p>
+            </div>
+            <div>
+              <p className="text-default-500">Connectivity</p>
+              <p className="font-medium">{config?.connectivity || "Not set"}</p>
+            </div>
+          </div>
+
+          {/* TMS Configuration */}
+          {config?.mode === "TMS" && (
+            <>
+              <Divider />
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-default-700">TMS Configuration</p>
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div>
+                    <p className="text-default-500">Login Name</p>
+                    <p className="font-medium">{config?.loginName || "Not set"}</p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">Password</p>
+                    <p className="font-medium">{config?.password ? "••••••••" : "Not set"}</p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">External Manager Address</p>
+                    <p className="font-medium">{config?.externalManagerAddress || "Not set"}</p>
+                  </div>
+                  {config?.externalManagerDomain && (
+                    <div>
+                      <p className="text-default-500">Domain</p>
+                      <p className="font-medium">{config.externalManagerDomain}</p>
+                    </div>
+                  )}
+                  {config?.externalManagerPath && (
+                    <div>
+                      <p className="text-default-500">Path</p>
+                      <p className="font-medium">{config.externalManagerPath}</p>
+                    </div>
+                  )}
+                  {config?.externalManagerProtocol && (
+                    <div>
+                      <p className="text-default-500">Protocol</p>
+                      <p className="font-medium">{config.externalManagerProtocol}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Action Button */}
+          <Divider />
+          <div className="flex justify-end">
+            <Button
+              color="primary"
+              isDisabled={isProvisioning}
+              startContent={<Icon icon="solar:settings-outline" width={20} />}
+              onPress={onEdit}
+            >
+              Edit Configuration
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}

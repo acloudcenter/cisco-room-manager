@@ -14,6 +14,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  CircularProgress,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -25,6 +26,8 @@ import {
   ProtocolType,
 } from "./provisioning-types";
 
+import { useDeviceStore } from "@/stores/device-store";
+
 export default function ProvisioningForm({
   device,
   onSubmit,
@@ -34,6 +37,9 @@ export default function ProvisioningForm({
   const [formData, setFormData] = React.useState<ProvisioningFormData>(defaultProvisioningFormData);
   const [showPassword, setShowPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  // Subscribe to provisioning state from Zustand store
+  const { isProvisioning, provisioningProgress, provisioningError } = useDeviceStore();
 
   // Auto-set connectivity to External when TMS mode is selected
   React.useEffect(() => {
@@ -81,11 +87,14 @@ export default function ProvisioningForm({
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    // Clear any previous provisioning errors
+    useDeviceStore.getState().setProvisioningError(null);
+
     try {
       await onSubmit(formData);
     } catch (error) {
-      // TODO: Add proper error handling UI
-      setErrors({ general: "Failed to apply provisioning configuration" });
+      // Error handling is now done in workflows via Zustand state
+      console.error("Form submission error:", error);
     }
   };
 
@@ -316,18 +325,53 @@ export default function ProvisioningForm({
 
       <Divider />
 
+      {/* Progress Display */}
+      {isProvisioning && (
+        <Card className="bg-default-50 border-primary-200">
+          <CardBody className="flex flex-row items-center gap-4 p-4">
+            <CircularProgress color="primary" label="Provisioning..." size="md" />
+            <div className="flex flex-col">
+              <p className="text-sm font-medium text-default-700">Configuring Device</p>
+              <p className="text-xs text-default-500">{provisioningProgress || "Processing..."}</p>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Error Display */}
+      {provisioningError && !isProvisioning && (
+        <Card className="bg-danger-50 border-danger-200">
+          <CardBody className="p-4">
+            <div className="flex items-start gap-3">
+              <Icon
+                className="text-danger-500 mt-0.5"
+                icon="solar:danger-circle-outline"
+                width={20}
+              />
+              <div className="flex flex-col">
+                <p className="text-sm font-medium text-danger-700">Provisioning Failed</p>
+                <p className="text-xs text-danger-600 mt-1">{provisioningError}</p>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       <div className="flex gap-3 justify-end">
-        <Button isDisabled={isLoading} variant="light" onPress={onCancel}>
+        <Button isDisabled={isLoading || isProvisioning} variant="light" onPress={onCancel}>
           Cancel
         </Button>
         <Button
           color="primary"
-          isLoading={isLoading}
-          startContent={!isLoading && <Icon icon="solar:settings-outline" width={20} />}
+          isDisabled={isProvisioning}
+          isLoading={isLoading || isProvisioning}
+          startContent={
+            !(isLoading || isProvisioning) && <Icon icon="solar:settings-outline" width={20} />
+          }
           onPress={handleSubmit}
         >
-          {isLoading ? "Applying..." : "Apply Configuration"}
+          {isProvisioning ? "Configuring..." : isLoading ? "Applying..." : "Apply Configuration"}
         </Button>
       </div>
     </div>

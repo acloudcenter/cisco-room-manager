@@ -23,17 +23,27 @@ interface DeviceState {
   isConnecting: boolean;
   connectionError: string | null;
 
+  // Provisioning State
+  isProvisioning: boolean;
+  provisioningProgress: string | null;
+  provisioningError: string | null;
+
   // Actions
   connectDevice: (credentials: ConnectionCredentials) => Promise<void>;
   disconnectDevice: () => void;
   clearConnectionError: () => void;
   getCurrentDevice: () => ConnectedDevice | null;
+  setProvisioningState: (isProvisioning: boolean, progress?: string) => void;
+  setProvisioningError: (error: string | null) => void;
 }
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
   devices: [],
   isConnecting: false,
   connectionError: null,
+  isProvisioning: false,
+  provisioningProgress: null,
+  provisioningError: null,
 
   connectDevice: async (credentials: ConnectionCredentials) => {
     set({ isConnecting: true, connectionError: null });
@@ -96,5 +106,17 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     const { devices } = get();
 
     return devices.length > 0 ? devices[0] : null;
+  },
+
+  setProvisioningState: (isProvisioning: boolean, progress?: string) => {
+    set({
+      isProvisioning,
+      provisioningProgress: progress || null,
+      provisioningError: isProvisioning ? null : get().provisioningError,
+    });
+  },
+
+  setProvisioningError: (error: string | null) => {
+    set({ provisioningError: error });
   },
 }));

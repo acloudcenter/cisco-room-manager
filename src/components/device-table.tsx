@@ -31,7 +31,12 @@ import {
 import { Icon } from "@iconify/react";
 
 import { useDeviceStore, ConnectedDevice } from "@/stores/device-store";
-import { ProvisioningForm, ProvisioningFormData } from "@/components/provisioning";
+import {
+  ProvisioningForm,
+  CurrentConfigDisplay,
+  ProvisioningFormData,
+} from "@/components/provisioning";
+import { applyTmsConfiguration, clearToWebexMode } from "@/lib/provisioning";
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -197,6 +202,7 @@ export default function DeviceTable() {
   const [page, setPage] = React.useState(1);
   const [selectedDevice, setSelectedDevice] = React.useState<ConnectedDevice | null>(null);
   const [drawerAction, setDrawerAction] = React.useState<string>("");
+  const [isProvisioningEditMode, setIsProvisioningEditMode] = React.useState(false);
   const [pendingDisconnect, setPendingDisconnect] = React.useState<{
     device?: ConnectedDevice;
     count?: number;
@@ -298,6 +304,7 @@ export default function DeviceTable() {
     // For other actions, open the drawer
     setSelectedDevice(device);
     setDrawerAction(action);
+    setIsProvisioningEditMode(false); // Always start in view mode
     onOpen();
   };
 
@@ -318,14 +325,38 @@ export default function DeviceTable() {
     }
   };
 
-  const handleProvisioningSubmit = async (_data: ProvisioningFormData) => {
-    // TODO: Implement actual provisioning API calls
-    // For now, just close the drawer
-    onClose();
+  const handleProvisioningSubmit = async (formData: ProvisioningFormData) => {
+    if (!selectedDevice) {
+      console.error("No device selected for provisioning");
+
+      return;
+    }
+
+    try {
+      if (formData.mode === "TMS") {
+        await applyTmsConfiguration(selectedDevice, formData);
+      } else if (formData.mode === "Webex") {
+        await clearToWebexMode(selectedDevice);
+      } else {
+        throw new Error(`Unsupported provisioning mode: ${formData.mode}`);
+      }
+
+      // Success - close drawer
+      onClose();
+    } catch (error) {
+      // Error handling - keep drawer open, error is shown via Zustand state
+      console.error("Provisioning failed:", error);
+      // Note: Error is displayed in the form via Zustand provisioningError state
+    }
   };
 
   const handleProvisioningCancel = () => {
+    setIsProvisioningEditMode(false);
     onClose();
+  };
+
+  const handleProvisioningEdit = () => {
+    setIsProvisioningEditMode(true);
   };
 
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
@@ -641,11 +672,15 @@ export default function DeviceTable() {
           </DrawerHeader>
           <DrawerBody>
             {drawerAction === "provision" && selectedDevice ? (
-              <ProvisioningForm
-                device={selectedDevice}
-                onCancel={handleProvisioningCancel}
-                onSubmit={handleProvisioningSubmit}
-              />
+              isProvisioningEditMode ? (
+                <ProvisioningForm
+                  device={selectedDevice}
+                  onCancel={handleProvisioningCancel}
+                  onSubmit={handleProvisioningSubmit}
+                />
+              ) : (
+                <CurrentConfigDisplay device={selectedDevice} onEdit={handleProvisioningEdit} />
+              )
             ) : (
               <div className="flex flex-col gap-4">
                 <div className="p-4 bg-default-100 rounded-lg">
