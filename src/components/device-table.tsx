@@ -31,6 +31,7 @@ import {
 import { Icon } from "@iconify/react";
 
 import { useDeviceStore, ConnectedDevice } from "@/stores/device-store";
+import { ProvisioningForm, ProvisioningFormData } from "@/components/provisioning";
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -315,6 +316,16 @@ export default function DeviceTable() {
       setDrawerAction(`bulk-${action}`);
       onOpen();
     }
+  };
+
+  const handleProvisioningSubmit = async (data: ProvisioningFormData) => {
+    // TODO: Implement actual provisioning API calls
+    // For now, just close the drawer
+    onClose();
+  };
+
+  const handleProvisioningCancel = () => {
+    onClose();
   };
 
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
@@ -629,32 +640,40 @@ export default function DeviceTable() {
             )}
           </DrawerHeader>
           <DrawerBody>
-            <div className="flex flex-col gap-4">
-              <div className="p-4 bg-default-100 rounded-lg">
-                <p className="text-center text-default-600">
-                  {drawerAction.startsWith("bulk-") ? (
-                    <>
-                      Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
-                      implemented here.
-                    </>
-                  ) : (
-                    <>{capitalize(drawerAction)} functionality will be implemented here.</>
-                  )}
-                </p>
-                <div className="mt-4 flex justify-center">
-                  <Icon
-                    className="text-default-400"
-                    height={48}
-                    icon={
-                      drawerAction.startsWith("bulk-")
-                        ? "heroicons:squares-2x2"
-                        : "heroicons:wrench-screwdriver"
-                    }
-                    width={48}
-                  />
+            {drawerAction === "provision" && selectedDevice ? (
+              <ProvisioningForm
+                device={selectedDevice}
+                onCancel={handleProvisioningCancel}
+                onSubmit={handleProvisioningSubmit}
+              />
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="p-4 bg-default-100 rounded-lg">
+                  <p className="text-center text-default-600">
+                    {drawerAction.startsWith("bulk-") ? (
+                      <>
+                        Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
+                        implemented here.
+                      </>
+                    ) : (
+                      <>{capitalize(drawerAction)} functionality will be implemented here.</>
+                    )}
+                  </p>
+                  <div className="mt-4 flex justify-center">
+                    <Icon
+                      className="text-default-400"
+                      height={48}
+                      icon={
+                        drawerAction.startsWith("bulk-")
+                          ? "heroicons:squares-2x2"
+                          : "heroicons:wrench-screwdriver"
+                      }
+                      width={48}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </DrawerBody>
         </DrawerContent>
       </Drawer>
