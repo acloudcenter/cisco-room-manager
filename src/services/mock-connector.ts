@@ -107,6 +107,7 @@ export class MockRoomOSConnector {
     if (this.errorHandler) {
       this.errorHandler(error);
     }
+    // eslint-disable-next-line no-console
     console.warn("Mock connection error:", error);
   }
 

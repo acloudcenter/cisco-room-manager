@@ -34,9 +34,7 @@ export const applyTmsConfiguration = async (
     setProvisioningState(true, "Checking current configuration...");
 
     // Step 2: Check current state (device can be in any mode)
-    const currentConfig = await ciscoProvisioningService.getProvisioningConfig();
-
-    console.log(`Current device mode: ${currentConfig.mode}`);
+    await ciscoProvisioningService.getProvisioningConfig();
 
     // Step 3: Switch to TMS mode
     setProvisioningState(true, "Switching to TMS mode...");
@@ -125,9 +123,7 @@ export const clearToWebexMode = async (_device: ConnectedDevice): Promise<void> 
     setProvisioningState(true, "Checking current configuration...");
 
     // Step 2: Check current state (device can be in any mode)
-    const currentConfig = await ciscoProvisioningService.getProvisioningConfig();
-
-    console.log(`Current device mode: ${currentConfig.mode}`);
+    await ciscoProvisioningService.getProvisioningConfig();
 
     setProvisioningState(true, "Clearing to Webex mode...");
 

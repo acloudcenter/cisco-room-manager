@@ -50,9 +50,8 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
       // Success - close modal and reset form
       setFormData({ ipAddress: "", username: "", password: "" });
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       // Error is handled by the store and will be displayed in UI
-      console.error("Connection failed:", error);
     }
   };
 

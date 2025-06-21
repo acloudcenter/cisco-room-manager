@@ -42,7 +42,6 @@ Cisco Room Manager is a work-in-progress application that provides a comprehensi
 
 ## Getting Started - Still a work-in-progress
 
-
 ## License
 
 Licensed under the [MIT license](https://github.com/frontio-ai/vite-template/blob/main/LICENSE).

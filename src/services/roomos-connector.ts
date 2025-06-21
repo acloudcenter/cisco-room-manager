@@ -51,12 +51,14 @@ export class RoomOSConnector {
       // Get device information
       this.unitName = await xapi.Config.SystemUnit.Name.get();
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.warn("Could not get unit name:", e);
     }
 
     try {
       this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.warn("Could not get unit type:", e);
     }
   }
@@ -186,6 +188,7 @@ export class RoomOSConnector {
     if (this.errorHandler) {
       this.errorHandler(error);
     }
+    // eslint-disable-next-line no-console
     console.warn("Connection error:", error);
   }
 

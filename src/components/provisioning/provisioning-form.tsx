@@ -92,9 +92,8 @@ export default function ProvisioningForm({
 
     try {
       await onSubmit(formData);
-    } catch (error) {
+    } catch {
       // Error handling is now done in workflows via Zustand state
-      console.error("Form submission error:", error);
     }
   };
 

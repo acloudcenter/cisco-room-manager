@@ -327,8 +327,6 @@ export default function DeviceTable() {
 
   const handleProvisioningSubmit = async (formData: ProvisioningFormData) => {
     if (!selectedDevice) {
-      console.error("No device selected for provisioning");
-
       return;
     }
 
@@ -343,9 +341,8 @@ export default function DeviceTable() {
 
       // Success - close drawer
       onClose();
-    } catch (error) {
+    } catch {
       // Error handling - keep drawer open, error is shown via Zustand state
-      console.error("Provisioning failed:", error);
       // Note: Error is displayed in the form via Zustand provisioningError state
     }
   };

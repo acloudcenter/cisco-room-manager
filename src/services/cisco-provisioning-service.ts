@@ -265,7 +265,7 @@ class CiscoProvisioningService {
       const status = await this.getProvisioningStatus();
 
       return status.status === "Provisioned";
-    } catch (error) {
+    } catch {
       return false;
     }
   }

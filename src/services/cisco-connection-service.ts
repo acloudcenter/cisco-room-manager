@@ -62,6 +62,7 @@ class CiscoConnectionService {
         try {
           this.unitName = await xapi.Config.SystemUnit.Name.get();
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.warn("Could not get unit name:", e);
           this.unitName = "Unknown Device";
         }
@@ -69,6 +70,7 @@ class CiscoConnectionService {
         try {
           this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.warn("Could not get unit type:", e);
           this.unitType = "Unknown Type";
         }
@@ -76,6 +78,7 @@ class CiscoConnectionService {
         try {
           this.softwareVersion = await xapi.Status.SystemUnit.Software.Version.get();
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.warn("Could not get software version:", e);
           this.softwareVersion = "Unknown";
         }
@@ -94,14 +97,19 @@ class CiscoConnectionService {
         this.connection = "failed";
         this.connector = null;
 
+        // eslint-disable-next-line no-console
         console.error("\nNot able to connect.");
+        // eslint-disable-next-line no-console
         console.error(`Try logging in at https://${host} and accept the self-signed certificate?`);
+        // eslint-disable-next-line no-console
         console.error("Make sure you are on the same network (not VPN)");
+        // eslint-disable-next-line no-console
         console.error(
           "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
         );
 
         if (error.message) {
+          // eslint-disable-next-line no-console
           console.error("\nError details:", error.message);
         }
 
