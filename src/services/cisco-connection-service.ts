@@ -18,6 +18,7 @@ export interface ConnectedDeviceInfo {
   unitName: string;
   unitType: string;
   host: string;
+  softwareVersion: string;
 }
 
 class CiscoConnectionService {
@@ -26,6 +27,7 @@ class CiscoConnectionService {
   private login: ConnectionCredentials | null = null;
   private unitName = "";
   private unitType = "";
+  private softwareVersion = "";
 
   /**
    * Connect to device using event-based pattern like Cisco's official tool
@@ -68,6 +70,13 @@ class CiscoConnectionService {
           } catch (e) {
             console.warn("Could not get unit type:", e);
             this.unitType = "Unknown Type";
+          }
+
+          try {
+            this.softwareVersion = await xapi.Status.SystemUnit.Software.Version.get();
+          } catch (e) {
+            console.warn("Could not get software version:", e);
+            this.softwareVersion = "Unknown";
           }
 
           // Set up close handler
@@ -134,6 +143,7 @@ class CiscoConnectionService {
       unitName: this.unitName,
       unitType: this.unitType,
       host: this.login.host,
+      softwareVersion: this.softwareVersion,
     };
   }
 

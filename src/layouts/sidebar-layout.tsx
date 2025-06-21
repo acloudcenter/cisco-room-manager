@@ -4,7 +4,6 @@ import React from "react";
 import { Button } from "@heroui/button";
 import { ScrollShadow } from "@heroui/scroll-shadow";
 import { Spacer } from "@heroui/spacer";
-import { Input } from "@heroui/input";
 import { useDisclosure } from "@heroui/modal";
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -79,24 +78,6 @@ export default function SidebarLayout({
         <p className="text-xs text-default-500 mt-1 px-2">An open source tool for Cisco Devices</p>
 
         <Spacer y={8} />
-
-        <div className="flex flex-col gap-4">
-          <Input
-            fullWidth
-            aria-label="search"
-            classNames={{
-              base: "px-1",
-              inputWrapper:
-                "bg-default-100/60 backdrop-blur-sm border border-divider data-[hover=true]:bg-default-100/80 group-data-[focus=true]:bg-default-100/80",
-              input: "placeholder:text-default-400 group-data-[has-value=true]:text-foreground",
-            }}
-            labelPlacement="outside"
-            placeholder="Search devices..."
-            startContent={
-              <Icon className="text-default-400" icon="solar:magnifer-linear" width={18} />
-            }
-          />
-        </div>
 
         <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
           <Sidebar

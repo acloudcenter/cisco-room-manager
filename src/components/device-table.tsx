@@ -22,6 +22,11 @@ import {
   DrawerHeader,
   DrawerBody,
   useDisclosure,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -175,6 +180,7 @@ interface DeviceTableRowData {
 export default function DeviceTable() {
   const { devices, disconnectDevice } = useDeviceStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onClose: onConfirmClose } = useDisclosure();
 
   const [filterValue, setFilterValue] = React.useState("");
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
@@ -190,6 +196,10 @@ export default function DeviceTable() {
   const [page, setPage] = React.useState(1);
   const [selectedDevice, setSelectedDevice] = React.useState<ConnectedDevice | null>(null);
   const [drawerAction, setDrawerAction] = React.useState<string>("");
+  const [pendingDisconnect, setPendingDisconnect] = React.useState<{
+    device?: ConnectedDevice;
+    count?: number;
+  } | null>(null);
 
   // Get devices from store
   const displayDevices = devices;
@@ -203,6 +213,18 @@ export default function DeviceTable() {
 
   const hasSelection = selectedCount > 0;
 
+  // Simple firmware version formatter - removes git hash
+  const formatFirmware = (version: string) => {
+    // Split by dot and take first 4 parts (ce11.29.1.5)
+    const parts = version.split(".");
+
+    if (parts.length > 4) {
+      return parts.slice(0, 4).join(".").toUpperCase();
+    }
+
+    return version.toUpperCase();
+  };
+
   // Transform devices into table row data
   const tableData: DeviceTableRowData[] = React.useMemo(() => {
     return displayDevices.map((device) => ({
@@ -211,7 +233,7 @@ export default function DeviceTable() {
       ipAddress: device.credentials.host,
       type: device.info.unitType || "Unknown Type",
       status: device.connectionState,
-      firmware: "Unknown", // TODO: Get from device status query
+      firmware: formatFirmware(device.info.softwareVersion || "Unknown"),
       device,
     }));
   }, [displayDevices]);
@@ -265,10 +287,9 @@ export default function DeviceTable() {
 
   const handleAction = (device: ConnectedDevice, action: string) => {
     if (action === "disconnect") {
-      // Handle disconnect directly
-      if (confirm(`Disconnect from ${device.info.unitName}?`)) {
-        disconnectDevice();
-      }
+      // Handle disconnect with HeroUI modal
+      setPendingDisconnect({ device });
+      onConfirmOpen();
 
       return;
     }
@@ -280,7 +301,15 @@ export default function DeviceTable() {
   };
 
   const handleBulkAction = (action: string) => {
-    // Simple: just use first available device and mark as bulk action
+    // Handle bulk disconnect same as individual
+    if (action === "disconnect") {
+      setPendingDisconnect({ count: selectedCount });
+      onConfirmOpen();
+
+      return;
+    }
+
+    // For other actions, open the drawer
     if (displayDevices.length > 0) {
       setSelectedDevice(displayDevices[0]);
       setDrawerAction(`bulk-${action}`);
@@ -629,6 +658,43 @@ export default function DeviceTable() {
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
+      {/* Disconnect Confirmation Modal */}
+      <Modal isOpen={isConfirmOpen} placement="center" size="sm" onClose={onConfirmClose}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Icon className="text-warning" icon="solar:logout-2-outline" width={24} />
+              <span>Confirm Disconnect</span>
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <p className="text-default-600">
+              {pendingDisconnect?.device
+                ? `Are you sure you want to disconnect from ${pendingDisconnect.device.info.unitName}?`
+                : `Are you sure you want to disconnect from ${pendingDisconnect?.count || 0} device${
+                    (pendingDisconnect?.count || 0) > 1 ? "s" : ""
+                  }?`}
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={onConfirmClose}>
+              Cancel
+            </Button>
+            <Button
+              color="danger"
+              onPress={() => {
+                disconnectDevice();
+                setSelectedKeys(new Set([])); // Clear selection
+                onConfirmClose();
+                setPendingDisconnect(null);
+              }}
+            >
+              Disconnect
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
