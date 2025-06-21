@@ -25,30 +25,30 @@ export const validateTmsFormData = (formData: ProvisioningFormData): ValidationR
   // TMS-specific validation
   if (formData.mode === "TMS") {
     // External Manager Address is required for TMS
-    if (!formData.externalManagerAddress?.trim()) {
+    if (!formData.externalManager.address?.trim()) {
       errors.push("External Manager Address is required for TMS mode");
     }
 
     // Credentials are required for TMS
-    if (!formData.loginName?.trim()) {
+    if (!formData.credentials.loginName?.trim()) {
       errors.push("Login Name is required for TMS mode");
     }
 
-    if (!formData.password?.trim()) {
+    if (!formData.credentials.password?.trim()) {
       errors.push("Password is required for TMS mode");
     }
 
     // Validate External Manager Address format (basic URL validation)
-    if (formData.externalManagerAddress) {
+    if (formData.externalManager.address) {
       const addressPattern = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-      if (!addressPattern.test(formData.externalManagerAddress.trim())) {
+      if (!addressPattern.test(formData.externalManager.address.trim())) {
         errors.push("External Manager Address must be a valid domain or IP address");
       }
     }
 
     // Validate External Manager Path if provided
-    if (formData.externalManagerPath && !formData.externalManagerPath.startsWith("/")) {
+    if (formData.externalManager.path && !formData.externalManager.path.startsWith("/")) {
       errors.push("External Manager Path must start with '/'");
     }
   }
@@ -101,14 +101,7 @@ export const validateCredentials = (credentials: {
  * Validate device provisioning state before operations
  * Note: Devices can start in any state - these are informational checks
  */
-export const validateDeviceState = (
-  currentConfig: {
-    mode: string;
-    connectivity?: string;
-    loginName?: string;
-  },
-  operation: "apply-tms" | "clear-webex",
-): ValidationResult => {
+export const validateDeviceState = (): ValidationResult => {
   const errors: string[] = [];
 
   // Currently no hard validation requirements since devices can be in any starting state

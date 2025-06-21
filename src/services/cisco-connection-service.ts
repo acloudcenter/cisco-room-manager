@@ -51,63 +51,62 @@ class CiscoConnectionService {
 
     return new Promise((resolve) => {
       // @ts-ignore - jsxapi connect returns EventEmitter but TypeScript infers it as Promise
-      jsxapi
-        .connect(`wss://${host}`, { username, password })
-        .on("ready", async (xapi: any) => {
-          // Connection successful
-          this.connector = xapi;
-          this.connection = "connected";
+      const connection = jsxapi.connect(`wss://${host}`, { username, password }) as any;
 
-          // Get device info
-          try {
-            this.unitName = await xapi.Config.SystemUnit.Name.get();
-          } catch (e) {
-            console.warn("Could not get unit name:", e);
-            this.unitName = "Unknown Device";
-          }
+      connection.on("ready", async (xapi: any) => {
+        // Connection successful
+        this.connector = xapi;
+        this.connection = "connected";
 
-          try {
-            this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
-          } catch (e) {
-            console.warn("Could not get unit type:", e);
-            this.unitType = "Unknown Type";
-          }
+        // Get device info
+        try {
+          this.unitName = await xapi.Config.SystemUnit.Name.get();
+        } catch (e) {
+          console.warn("Could not get unit name:", e);
+          this.unitName = "Unknown Device";
+        }
 
-          try {
-            this.softwareVersion = await xapi.Status.SystemUnit.Software.Version.get();
-          } catch (e) {
-            console.warn("Could not get software version:", e);
-            this.softwareVersion = "Unknown";
-          }
+        try {
+          this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
+        } catch (e) {
+          console.warn("Could not get unit type:", e);
+          this.unitType = "Unknown Type";
+        }
 
-          // Set up close handler
-          xapi.on("close", () => {
-            this.connection = "not-connected";
-            this.connector = null;
-          });
+        try {
+          this.softwareVersion = await xapi.Status.SystemUnit.Software.Version.get();
+        } catch (e) {
+          console.warn("Could not get software version:", e);
+          this.softwareVersion = "Unknown";
+        }
 
-          resolve(true);
-        })
-        .on("error", (error: Error) => {
-          // Connection failed
-          this.connection = "failed";
+        // Set up close handler
+        xapi.on("close", () => {
+          this.connection = "not-connected";
           this.connector = null;
-
-          console.error("\nNot able to connect.");
-          console.error(
-            `Try logging in at https://${host} and accept the self-signed certificate?`,
-          );
-          console.error("Make sure you are on the same network (not VPN)");
-          console.error(
-            "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
-          );
-
-          if (error.message) {
-            console.error("\nError details:", error.message);
-          }
-
-          resolve(false);
         });
+
+        resolve(true);
+      });
+
+      connection.on("error", (error: Error) => {
+        // Connection failed
+        this.connection = "failed";
+        this.connector = null;
+
+        console.error("\nNot able to connect.");
+        console.error(`Try logging in at https://${host} and accept the self-signed certificate?`);
+        console.error("Make sure you are on the same network (not VPN)");
+        console.error(
+          "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
+        );
+
+        if (error.message) {
+          console.error("\nError details:", error.message);
+        }
+
+        resolve(false);
+      });
     });
   }
 

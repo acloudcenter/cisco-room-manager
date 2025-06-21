@@ -29,7 +29,7 @@ interface ProvisioningConfig {
 }
 
 export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDisplayProps) {
-  const { isProvisioning, provisioningProgress, provisioningError } = useDeviceStore();
+  const { isProvisioning, provisioningProgress } = useDeviceStore();
   const [config, setConfig] = React.useState<ProvisioningConfig | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
