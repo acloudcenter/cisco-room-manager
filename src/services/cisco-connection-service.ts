@@ -28,7 +28,7 @@ class CiscoConnectionService {
   private unitType = "";
 
   /**
-   * Connect to device - matches Cisco's implementation pattern
+   * Connect to device using event-based pattern like Cisco's official tool
    */
   async connect(credentials: ConnectionCredentials | false): Promise<boolean> {
     // Handle disconnect
@@ -47,55 +47,58 @@ class CiscoConnectionService {
     this.login = credentials;
     this.connection = "connecting";
 
-    try {
-      const xapi = await jsxapi.connect(`wss://${host}`, {
-        username,
-        password,
-      });
+    return new Promise((resolve) => {
+      jsxapi
+        .connect(`wss://${host}`, { username, password })
+        .on("ready", async (xapi: any) => {
+          // Connection successful
+          this.connector = xapi;
+          this.connection = "connected";
 
-      // Connection is already established at this point
-      this.connector = xapi;
-      this.connection = "connected";
+          // Get device info
+          try {
+            this.unitName = await xapi.Config.SystemUnit.Name.get();
+          } catch (e) {
+            console.warn("Could not get unit name:", e);
+            this.unitName = "Unknown Device";
+          }
 
-      // Get device info immediately after connection
-      try {
-        this.unitName = await xapi.Config.SystemUnit.Name.get();
-      } catch (e) {
-        console.warn("Could not get unit name:", e);
-        this.unitName = "Unknown Device";
-      }
+          try {
+            this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
+          } catch (e) {
+            console.warn("Could not get unit type:", e);
+            this.unitType = "Unknown Type";
+          }
 
-      try {
-        this.unitType = await xapi.Status.SystemUnit.ProductPlatform.get();
-      } catch (e) {
-        console.warn("Could not get unit type:", e);
-        this.unitType = "Unknown Type";
-      }
+          // Set up close handler
+          xapi.on("close", () => {
+            this.connection = "not-connected";
+            this.connector = null;
+          });
 
-      // Set up event handlers
-      xapi.on("error", (error: Error) => {
-        this.onError(error);
-      });
+          resolve(true);
+        })
+        .on("error", (error: Error) => {
+          // Connection failed
+          this.connection = "failed";
+          this.connector = null;
 
-      xapi.on("close", () => {
-        this.connection = "not-connected";
-        this.connector = null;
-      });
+          console.error("\nNot able to connect.");
+          console.error(
+            `Try logging in at https://${host} and accept the self-signed certificate?`,
+          );
+          console.error("Make sure you are on the same network (not VPN)");
+          console.error(
+            "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
+          );
 
-      return true;
-    } catch (error) {
-      this.connection = "failed";
-      this.onError(error as Error);
-      throw error;
-    }
-  }
+          if (error.message) {
+            console.error("\nError details:", error.message);
+          }
 
-  /**
-   * Handle connection errors
-   */
-  private onError(error: Error): void {
-    this.connection = "failed";
-    console.warn("Connection error:", error.message);
+          resolve(false);
+        });
+    });
   }
 
   /**
@@ -153,6 +156,21 @@ class CiscoConnectionService {
    */
   isConnected(): boolean {
     return this.connection === "connected";
+  }
+
+  /**
+   * Ping the device to check if connection is alive
+   */
+  async ping(): Promise<boolean> {
+    if (!this.connector) return false;
+
+    try {
+      await this.connector.Status.Audio.Volume.get();
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 

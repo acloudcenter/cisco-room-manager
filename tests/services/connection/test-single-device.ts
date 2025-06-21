@@ -28,42 +28,61 @@ if (!deviceConfig.host || !deviceConfig.username || !deviceConfig.password) {
 const testConnection = async () => {
   console.log(`Testing connection to device at ${deviceConfig.host}...`);
 
-  try {
-    // Check if jsxapi is imported correctly
-    console.log("jsxapi type:", typeof jsxapi);
-    console.log("jsxapi value:", jsxapi);
+  return new Promise((resolve) => {
+    let errorShown = false;
 
-    // Using connect method (if jsxapi has a connect property)
-    if (jsxapi && typeof jsxapi.connect === "function") {
-      console.log("Attempting connection via jsxapi.connect...");
-      const xapi = await jsxapi.connect(`wss://${deviceConfig.host}`, {
+    jsxapi
+      .connect(`wss://${deviceConfig.host}`, {
         username: deviceConfig.username,
         password: deviceConfig.password,
+      })
+      .on("ready", async (xapi: any) => {
+        console.log("Connected successfully!");
+
+        // Get device info
+        try {
+          const productId = await xapi.Status.SystemUnit.ProductId.get();
+          const version = await xapi.Status.SystemUnit.Software.Version.get();
+          console.log("Device:", productId);
+          console.log("Version:", version);
+        } catch (e) {
+          console.log("Could not get device info");
+        }
+
+        // Test a simple API call
+        try {
+          const volume = await xapi.Status.Audio.Volume.get();
+          console.log("Current volume:", volume);
+        } catch (e) {
+          console.log("Could not get volume (might not be available on this device)");
+        }
+
+        // Disconnect
+        xapi.close();
+        console.log("Disconnected successfully!");
+        resolve(true);
+      })
+      .on("error", (error: any) => {
+        // Only show the error once (jsxapi might emit multiple error events)
+        if (errorShown) return;
+        errorShown = true;
+
+        console.error("\nNot able to connect.");
+        console.error(
+          `Try logging in at https://${deviceConfig.host} and accept the self-signed certificate?`,
+        );
+        console.error("Make sure you are on the same network (not VPN)");
+        console.error(
+          "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
+        );
+
+        if (error.message) {
+          console.error("\nError details:", error.message);
+        }
+
+        resolve(false);
       });
-
-      console.log("Connected successfully!");
-
-      // Test a simple API call
-      const volume = await xapi.Status.Audio.Volume.get();
-      console.log("Current volume:", volume);
-
-      // Disconnect
-      xapi.close();
-      console.log("Disconnected successfully! WebSocket connection closed.");
-      return;
-    }
-
-    // If approach works, log what we have
-    console.error("Unable to determine how to use jsxapi. Object structure:");
-    console.error("Keys:", Object.keys(jsxapi || {}));
-    console.error("jsxapi.default:", (jsxapi as any).default);
-  } catch (error) {
-    console.error("Connection failed:", error);
-    console.error("Error details:", {
-      message: (error as Error).message,
-      stack: (error as Error).stack,
-    });
-  }
+  });
 };
 
 // Run the test

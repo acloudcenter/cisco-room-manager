@@ -36,152 +36,95 @@ const testFullCycleToTms = async () => {
   // Give user time to cancel
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  try {
-    // Step 1: Connect to device
-    console.log("Step 1: Connecting to device...");
-    await ciscoConnectionService.connect({
-      host: deviceConfig.host,
-      username: deviceConfig.username,
-      password: deviceConfig.password,
-    });
-    console.log("✅ Connected successfully!\n");
+  // Step 1: Connect to device
+  console.log("Step 1: Connecting to device...");
+  const connected = await ciscoConnectionService.connect({
+    host: deviceConfig.host,
+    username: deviceConfig.username,
+    password: deviceConfig.password,
+  });
 
+  if (!connected) {
+    // Error message already shown by connection service
+    process.exit(1);
+  }
+
+  console.log("✅ Connected successfully!\n");
+
+  try {
     // Step 2: Show starting Webex configuration
     console.log("Step 2: Starting Webex configuration...");
-    const startConfig = await ciscoProvisioningService.getProvisioningConfig();
-    console.log("📋 Starting Config:", {
-      mode: startConfig.mode,
-      connectivity: startConfig.connectivity,
+    const startingStatus = await ciscoProvisioningService.getProvisioningConfig();
+    console.log("Starting configuration:", {
+      mode: startingStatus.mode,
+      connectivity: startingStatus.connectivity,
+      username: startingStatus.loginName,
     });
-    console.log("");
 
-    // Step 3: Switch to TMS mode (unlock all fields)
-    console.log("Step 3: Switching to TMS mode (unlock fields)...");
-    await ciscoProvisioningService.setProvisioningMode("TMS");
-    const tmsMode = await ciscoProvisioningService.getProvisioningMode();
-    console.log("✅ Mode set to:", tmsMode);
-    console.log("");
-
-    // Step 4: Set connectivity to External
-    console.log("Step 4: Setting connectivity to External...");
-    await ciscoProvisioningService.setConnectivity("External");
-    const connectivity = await ciscoProvisioningService.getProvisioningConfig();
-    console.log("✅ Connectivity set to:", connectivity.connectivity);
-    console.log("");
-
-    // Step 5: Set credentials
-    console.log("Step 5: Setting credentials (admin/admin)...");
-    await ciscoProvisioningService.setCredentials("admin", "admin");
-    console.log("✅ Credentials set");
-    console.log("");
-
-    // Step 6: Set TLS verify OFF
-    console.log("Step 6: Setting TLS verify to OFF...");
-    await ciscoProvisioningService.setTlsVerify(false);
-    console.log("✅ TLS verify set to OFF");
-    console.log("");
-
-    // Step 7: Set Webex Edge OFF
-    console.log("Step 7: Setting Webex Edge to OFF...");
-    await ciscoProvisioningService.setWebexEdge(false);
-    console.log("✅ Webex Edge set to OFF");
-    console.log("");
-
-    // Step 8: Configure External Manager (all fields)
-    console.log("Step 8: Configuring External Manager...");
-    const connector = ciscoConnectionService.getConnector();
-
-    console.log("  🔧 Setting address to 'externaltmstest.com'...");
-    await connector.Config.Provisioning.ExternalManager.Address.set("externaltmstest.com");
-
-    console.log("  🔧 Setting domain to 'testcisco'...");
-    await connector.Config.Provisioning.ExternalManager.Domain.set("testcisco");
-
-    console.log("  🔧 Setting path to '/my/path/to/prov'...");
-    await connector.Config.Provisioning.ExternalManager.Path.set("/my/path/to/prov");
-
-    console.log("  🔧 Setting protocol to 'HTTPS'...");
-    await connector.Config.Provisioning.ExternalManager.Protocol.set("HTTPS");
-
-    console.log("✅ External Manager fully configured");
-    console.log("");
-
-    // Step 9: Final verification
-    console.log("Step 9: Final TMS configuration verification...");
-    const finalConfig = await ciscoProvisioningService.getProvisioningConfig();
-    console.log("📋 Complete TMS Config:", {
-      mode: finalConfig.mode,
-      connectivity: finalConfig.connectivity,
-      loginName: finalConfig.loginName,
-      passwordSet: finalConfig.password ? "Yes" : "No",
-      tlsVerify: finalConfig.tlsVerify,
-      webexEdge: finalConfig.webexEdge,
-      externalManager: {
-        address: finalConfig.externalManager.address,
-        domain: finalConfig.externalManager.domain,
-        path: finalConfig.externalManager.path,
-        protocol: finalConfig.externalManager.protocol,
-      },
-    });
-    console.log("");
-
-    // Step 10: Verification summary
-    console.log("Step 10: Configuration verification...");
-    const verificationResults = {
-      mode: finalConfig.mode === "TMS" ? "✅" : "❌",
-      connectivity: finalConfig.connectivity === "External" ? "✅" : "❌",
-      credentials: finalConfig.loginName === "admin" ? "✅" : "❌",
-      tlsVerify: finalConfig.tlsVerify === "Off" ? "✅" : "❌",
-      webexEdge: finalConfig.webexEdge === "Off" ? "✅" : "❌",
-      address: finalConfig.externalManager.address === "externaltmstest.com" ? "✅" : "❌",
-      domain: finalConfig.externalManager.domain === "testcisco" ? "✅" : "❌",
-      path: finalConfig.externalManager.path === "/my/path/to/prov" ? "✅" : "❌",
-      protocol: finalConfig.externalManager.protocol === "HTTPS" ? "✅" : "❌",
-    };
-
-    console.log("📊 Verification Results:");
-    console.log(`  ${verificationResults.mode} Mode: TMS`);
-    console.log(`  ${verificationResults.connectivity} Connectivity: External`);
-    console.log(`  ${verificationResults.credentials} Credentials: admin/admin`);
-    console.log(`  ${verificationResults.tlsVerify} TLS Verify: OFF`);
-    console.log(`  ${verificationResults.webexEdge} Webex Edge: OFF`);
-    console.log(`  ${verificationResults.address} Address: externaltmstest.com`);
-    console.log(`  ${verificationResults.domain} Domain: testcisco`);
-    console.log(`  ${verificationResults.path} Path: /my/path/to/prov`);
-    console.log(`  ${verificationResults.protocol} Protocol: HTTPS`);
-
-    const allSuccess = Object.values(verificationResults).every((r) => r === "✅");
-    console.log(
-      `\n${allSuccess ? "🎉" : "⚠️"} Complete TMS configuration ${allSuccess ? "successful" : "partial"}!`,
-    );
-
-    if (allSuccess) {
-      console.log("📝 Full workflow completed:");
-      console.log("   Webex → TMS → External → Credentials → External Manager ✅");
-      console.log("🎯 Device ready for external provisioning system!");
+    if (startingStatus.mode !== "Webex") {
+      console.log("⚠️  Device is not in Webex mode. Cannot proceed with test.");
+      await ciscoConnectionService.disconnect();
+      return;
     }
-  } catch (error) {
-    console.error("❌ Test failed:", error.message);
-  } finally {
-    // Always disconnect
-    console.log("\nDisconnecting...");
-    ciscoConnectionService.disconnect();
 
-    setTimeout(() => {
-      console.log("Test completed, exiting...");
-      process.exit(0);
-    }, 1000);
+    // Step 3: Switch to TMS mode
+    console.log("\nStep 3: Switching from Webex to TMS mode...");
+    await ciscoProvisioningService.setProvisioningMode("TMS");
+    console.log("✅ Mode switched to TMS");
+
+    // Give device a moment to process mode change
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Step 4: Configure External connectivity
+    console.log("\nStep 4: Setting connectivity to External...");
+    await ciscoProvisioningService.setConnectivity("External");
+    console.log("✅ Connectivity set to External");
+
+    // Step 5: Configure External Manager
+    console.log("\nStep 5: Configuring external manager settings...");
+    await ciscoProvisioningService.setExternalManagerAddress("tms-server.company.com");
+    await ciscoProvisioningService.setExternalManagerDomain("WORKGROUP");
+    await ciscoProvisioningService.setExternalManagerPath(
+      "tms/public/external/management/SystemManagementService.asmx",
+    );
+    await ciscoProvisioningService.setExternalManagerProtocol("HTTPS");
+    console.log("✅ External manager configured");
+
+    // Step 6: Set credentials
+    console.log("\nStep 6: Setting provisioning credentials...");
+    await ciscoProvisioningService.setLoginName("tms-user");
+    await ciscoProvisioningService.setPassword("tms-password-123");
+    console.log("✅ Credentials configured");
+
+    // Step 7: Final status check
+    console.log("\nStep 7: Verifying final configuration...");
+    const finalStatus = await ciscoProvisioningService.getProvisioningConfig();
+    console.log("\nFinal configuration:", {
+      mode: finalStatus.mode,
+      connectivity: finalStatus.connectivity,
+      username: finalStatus.loginName,
+    });
+
+    console.log("\n✅ COMPLETE CYCLE TEST SUCCESSFUL!");
+    console.log("\n📝 Summary of changes:");
+    console.log("  - Mode: Webex → TMS");
+    console.log("  - Connectivity: → External");
+    console.log("  - External Manager: → tms-server.company.com");
+    console.log("  - Credentials: → tms-user");
+    console.log("\n💡 To restore Webex mode, run: test-back-to-webex.ts");
+
+    // Disconnect
+    await ciscoConnectionService.disconnect();
+    console.log("\n✅ Disconnected from device");
+  } catch (error) {
+    console.error("\n❌ Test failed:", error);
+    await ciscoConnectionService.disconnect();
+    process.exit(1);
   }
 };
 
-// Handle process termination
-process.on("SIGINT", () => {
-  console.log("\nProcess interrupted, cleaning up...");
-  ciscoConnectionService.disconnect();
-  process.exit(0);
-});
-
 // Run the test
-console.log("Complete Cycle to TMS Configuration");
-console.log("====================================\n");
-testFullCycleToTms();
+testFullCycleToTms().catch((error) => {
+  console.error("\n❌ Unhandled error:", error);
+  process.exit(1);
+});

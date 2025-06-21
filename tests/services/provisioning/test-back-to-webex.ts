@@ -30,16 +30,22 @@ if (!deviceConfig.host || !deviceConfig.username || !deviceConfig.password) {
 const testBackToWebex = async () => {
   console.log(`Testing switch back to Webex mode at ${deviceConfig.host}...\n`);
 
-  try {
-    // Step 1: Connect to device
-    console.log("Step 1: Connecting to device...");
-    await ciscoConnectionService.connect({
-      host: deviceConfig.host,
-      username: deviceConfig.username,
-      password: deviceConfig.password,
-    });
-    console.log("✅ Connected successfully!\n");
+  // Step 1: Connect to device
+  console.log("Step 1: Connecting to device...");
+  const connected = await ciscoConnectionService.connect({
+    host: deviceConfig.host,
+    username: deviceConfig.username,
+    password: deviceConfig.password,
+  });
 
+  if (!connected) {
+    // Error message already shown by connection service
+    process.exit(1);
+  }
+
+  console.log("✅ Connected successfully!\n");
+
+  try {
     // Step 2: Show current TMS configuration
     console.log("Step 2: Current TMS provisioning configuration...");
     const currentConfig = await ciscoProvisioningService.getProvisioningConfig();
@@ -48,97 +54,63 @@ const testBackToWebex = async () => {
       connectivity: currentConfig.connectivity,
       loginName: currentConfig.loginName,
       passwordSet: currentConfig.password ? "Yes" : "No",
-      tlsVerify: currentConfig.tlsVerify,
-      webexEdge: currentConfig.webexEdge,
-      externalManager: {
-        address: currentConfig.externalManager.address,
-        domain: currentConfig.externalManager.domain,
-        path: currentConfig.externalManager.path,
-        protocol: currentConfig.externalManager.protocol,
-      },
-    });
-    console.log("");
-
-    // Step 3: Switch back to Webex mode
-    console.log("Step 3: Switching provisioning mode back to Webex...");
-    await ciscoProvisioningService.setProvisioningMode("Webex");
-
-    // Verify the mode change
-    const newMode = await ciscoProvisioningService.getProvisioningMode();
-    console.log("✅ Mode changed to:", newMode);
-    console.log("");
-
-    // Step 4: Check configuration after switching to Webex
-    console.log("Step 4: Configuration after switching to Webex...");
-    const webexConfig = await ciscoProvisioningService.getProvisioningConfig();
-    console.log("📋 Webex Config:", {
-      mode: webexConfig.mode,
-      connectivity: webexConfig.connectivity,
-      loginName: webexConfig.loginName || "(not set)",
-      passwordSet: webexConfig.password ? "Yes" : "No",
-      tlsVerify: webexConfig.tlsVerify,
-      webexEdge: webexConfig.webexEdge,
-      externalManager: {
-        address: webexConfig.externalManager.address || "(not set)",
-        domain: webexConfig.externalManager.domain || "(not set)",
-        path: webexConfig.externalManager.path || "(not set)",
-        protocol: webexConfig.externalManager.protocol,
-      },
-    });
-    console.log("");
-
-    // Step 5: Summary of what changed
-    console.log("Step 5: Changes when switching to Webex mode...");
-    const changes = {
-      mode: currentConfig.mode !== webexConfig.mode,
-      connectivity: currentConfig.connectivity !== webexConfig.connectivity,
-      loginName: currentConfig.loginName !== webexConfig.loginName,
-      tlsVerify: currentConfig.tlsVerify !== webexConfig.tlsVerify,
-      webexEdge: currentConfig.webexEdge !== webexConfig.webexEdge,
-      externalManagerAddress:
-        currentConfig.externalManager.address !== webexConfig.externalManager.address,
-      externalManagerDomain:
-        currentConfig.externalManager.domain !== webexConfig.externalManager.domain,
-      externalManagerPath: currentConfig.externalManager.path !== webexConfig.externalManager.path,
-      externalManagerProtocol:
-        currentConfig.externalManager.protocol !== webexConfig.externalManager.protocol,
-    };
-
-    console.log("📊 What changed when switching to Webex:");
-    Object.entries(changes).forEach(([field, changed]) => {
-      const icon = changed ? "🔄" : "➡️";
-      console.log(`  ${icon} ${field}: ${changed ? "CHANGED" : "unchanged"}`);
+      externalManagerAddress: currentConfig.externalManagerAddress,
+      externalManagerDomain: currentConfig.externalManagerDomain,
     });
 
-    const modeSuccess = webexConfig.mode === "Webex" ? "✅" : "❌";
-    console.log(`\n${modeSuccess} Successfully switched back to Webex mode!`);
-
-    if (webexConfig.mode === "Webex") {
-      console.log("🎉 Complete provisioning cycle successful!");
-      console.log("📝 Full workflow: Webex → TMS → Configure → Back to Webex ✅");
+    if (currentConfig.mode !== "TMS") {
+      console.log("\n⚠️  Device is not in TMS mode. Cannot test switch back to Webex.");
+      console.log("Current mode:", currentConfig.mode);
+      await ciscoConnectionService.disconnect();
+      return;
     }
-  } catch (error) {
-    console.error("❌ Test failed:", error.message);
-  } finally {
-    // Always disconnect
-    console.log("\nDisconnecting...");
-    ciscoConnectionService.disconnect();
 
-    setTimeout(() => {
-      console.log("Test completed, exiting...");
-      process.exit(0);
-    }, 1000);
+    console.log("\n⚠️  WARNING: This will clear all TMS configuration!");
+    console.log("Press Ctrl+C within 3 seconds to cancel...\n");
+
+    // Give user time to cancel
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Step 3: Switching provisioning to Webex
+    console.log("Step 3: Switching provisioning to Webex...");
+    await ciscoProvisioningService.setProvisioningMode("Webex");
+    console.log("✅ Switched to Webex mode");
+
+    // Give device a moment to process
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Step 4: Verify we're back in Webex mode
+    console.log("\nStep 4: Verifying Webex mode restored...");
+    const finalStatus = await ciscoProvisioningService.getProvisioningConfig();
+    console.log("✅ Final status:", {
+      mode: finalStatus.mode,
+      connectivity: finalStatus.connectivity,
+      loginName: finalStatus.loginName,
+    });
+
+    if (finalStatus.mode === "Webex") {
+      console.log("\n✅ SUCCESSFULLY RESTORED TO WEBEX MODE!");
+      console.log("\n📝 What happened:");
+      console.log("  - Mode: TMS → Webex");
+      console.log("  - All TMS configuration cleared");
+      console.log("  - Device restored to cloud registration");
+    } else {
+      console.log("\n⚠️  Device may not have fully switched to Webex mode yet.");
+      console.log("Current mode:", finalStatus.mode);
+    }
+
+    // Disconnect
+    await ciscoConnectionService.disconnect();
+    console.log("\n✅ Disconnected from device");
+  } catch (error) {
+    console.error("\n❌ Test failed:", error);
+    await ciscoConnectionService.disconnect();
+    process.exit(1);
   }
 };
 
-// Handle process termination
-process.on("SIGINT", () => {
-  console.log("\nProcess interrupted, cleaning up...");
-  ciscoConnectionService.disconnect();
-  process.exit(0);
-});
-
 // Run the test
-console.log("Test Switch Back to Webex Mode");
-console.log("===============================\n");
-testBackToWebex();
+testBackToWebex().catch((error) => {
+  console.error("\n❌ Unhandled error:", error);
+  process.exit(1);
+});

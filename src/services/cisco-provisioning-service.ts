@@ -327,6 +327,125 @@ class CiscoProvisioningService {
   }
 
   /**
+   * Set external manager address
+   */
+  async setExternalManagerAddress(address: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.ExternalManager.Address.set(address);
+    } catch (error) {
+      throw new Error(`Failed to set external manager address: ${error}`);
+    }
+  }
+
+  /**
+   * Set external manager alternate address
+   */
+  async setExternalManagerAlternateAddress(address: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.ExternalManager.AlternateAddress.set(address);
+    } catch (error) {
+      throw new Error(`Failed to set external manager alternate address: ${error}`);
+    }
+  }
+
+  /**
+   * Set external manager domain
+   */
+  async setExternalManagerDomain(domain: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.ExternalManager.Domain.set(domain);
+    } catch (error) {
+      throw new Error(`Failed to set external manager domain: ${error}`);
+    }
+  }
+
+  /**
+   * Set external manager path
+   */
+  async setExternalManagerPath(path: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.ExternalManager.Path.set(path);
+    } catch (error) {
+      throw new Error(`Failed to set external manager path: ${error}`);
+    }
+  }
+
+  /**
+   * Set external manager protocol
+   */
+  async setExternalManagerProtocol(protocol: "HTTP" | "HTTPS"): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.ExternalManager.Protocol.set(protocol);
+    } catch (error) {
+      throw new Error(`Failed to set external manager protocol: ${error}`);
+    }
+  }
+
+  /**
+   * Set provisioning login name
+   */
+  async setLoginName(loginName: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.LoginName.set(loginName);
+    } catch (error) {
+      throw new Error(`Failed to set login name: ${error}`);
+    }
+  }
+
+  /**
+   * Set provisioning password
+   */
+  async setPassword(password: string): Promise<void> {
+    const connector = ciscoConnectionService.getConnector();
+
+    if (!connector) {
+      throw new Error("Device not connected");
+    }
+
+    try {
+      await connector.Config.Provisioning.Password.set(password);
+    } catch (error) {
+      throw new Error(`Failed to set password: ${error}`);
+    }
+  }
+
+  /**
    * Set TLS verification
    */
   async setTlsVerify(enabled: boolean): Promise<void> {
