@@ -1,5 +1,5 @@
 import SidebarLayout from "@/layouts/sidebar-layout";
-import DeviceTable from "@/components/device-table";
+import { DeviceTable } from "@/components/devices";
 
 export default function IndexPage() {
   return (

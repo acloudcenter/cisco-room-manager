@@ -8,11 +8,9 @@ import { useDisclosure } from "@heroui/modal";
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { sidebarItems } from "@/components/sidebar/sidebar-items";
-import SidebarDrawer from "@/components/sidebar/sidebar-drawer";
-import Sidebar from "@/components/sidebar/sidebar";
-import { ThemeSwitch } from "@/components/theme-switch";
-import ConnectDevicesModal from "@/components/connect-devices-modal";
+import { Sidebar, SidebarDrawer, sidebarItems } from "@/components/layout";
+import { ThemeSwitch } from "@/components/common";
+import { ConnectDevicesModal } from "@/components/devices";
 
 export default function SidebarLayout({
   children,
