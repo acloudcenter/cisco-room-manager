@@ -4,14 +4,14 @@
  */
 
 import type { ConnectedDevice } from "@/stores/device-store";
-import type { ProvisioningConfig } from "@/lib/provisioning";
+import type { ProvisioningConfig, ProvisioningStatus } from "@/lib/provisioning";
 
 import React from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Divider, CircularProgress } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { useDeviceStore } from "@/stores/device-store";
-import { getCurrentProvisioningConfig } from "@/lib/provisioning";
+import { getCurrentProvisioningConfig, getProvisioningStatus } from "@/lib/provisioning";
 
 interface CurrentConfigDisplayProps {
   device: ConnectedDevice;
@@ -21,6 +21,7 @@ interface CurrentConfigDisplayProps {
 export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDisplayProps) {
   const { isProvisioning, provisioningProgress } = useDeviceStore();
   const [config, setConfig] = React.useState<ProvisioningConfig | null>(null);
+  const [status, setStatus] = React.useState<ProvisioningStatus | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -29,9 +30,13 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
     setError(null);
 
     try {
-      const currentConfig = await getCurrentProvisioningConfig(device);
+      const [currentConfig, provStatus] = await Promise.all([
+        getCurrentProvisioningConfig(device),
+        getProvisioningStatus(),
+      ]);
 
       setConfig(currentConfig);
+      setStatus(provStatus);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to read configuration";
 
@@ -110,6 +115,25 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Provisioned":
+        return "success";
+      case "Provisioning":
+        return "primary";
+      case "NeedConfig":
+        return "warning";
+      case "AuthenticationFailed":
+      case "ConfigError":
+      case "Failed":
+        return "danger";
+      case "Idle":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -146,6 +170,21 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
+          {/* Provisioning Status */}
+          {status && (
+            <>
+              <div className="p-3 bg-default-100 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-default-700">Status</p>
+                  <Chip color={getStatusColor(status.status)} size="sm" variant="flat">
+                    {status.status}
+                  </Chip>
+                </div>
+              </div>
+              <Divider />
+            </>
+          )}
+
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>

@@ -58,6 +58,12 @@ export interface HealthStatus {
   powerConsumption: number;
 }
 
+export interface SipStatus {
+  registrationStatus: "Deregister" | "Failed" | "Inactive" | "Registered" | "Registering";
+  displayName: string;
+  uri: string;
+}
+
 export interface CompleteDeviceStatus {
   system: SystemInfo;
   audio: AudioStatus;
@@ -65,4 +71,5 @@ export interface CompleteDeviceStatus {
   call: CallStatus;
   standby: StandbyStatus;
   health: HealthStatus;
+  sip: SipStatus;
 }

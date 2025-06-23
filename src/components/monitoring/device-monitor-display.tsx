@@ -10,7 +10,9 @@ import type {
   VideoStatus,
   CallStatus,
   StandbyStatus,
+  SipStatus,
 } from "@/lib/device-status";
+import type { ProvisioningStatus } from "@/lib/provisioning";
 
 import React from "react";
 import {
@@ -32,7 +34,9 @@ import {
   getCallStatus,
   getStandbyStatus,
   getHealthStatus,
+  getSipStatus,
 } from "@/lib/device-status";
+import { getProvisioningStatus } from "@/lib/provisioning";
 
 interface DeviceMonitorDisplayProps {
   device: ConnectedDevice;
@@ -45,6 +49,8 @@ interface DeviceMonitorData {
   callStatus: CallStatus | null;
   standbyStatus: StandbyStatus | null;
   healthStatus: any | null;
+  provisioningStatus: ProvisioningStatus | null;
+  sipStatus: SipStatus | null;
 }
 
 export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayProps) {
@@ -56,6 +62,8 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
     callStatus: null,
     standbyStatus: null,
     healthStatus: null,
+    provisioningStatus: null,
+    sipStatus: null,
   });
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -66,15 +74,25 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
 
     try {
       // Load all device status data
-      const [systemInfo, audioStatus, videoStatus, callStatus, standbyStatus, healthStatus] =
-        await Promise.all([
-          getSystemInfo(),
-          getAudioStatus(),
-          getVideoStatus(),
-          getCallStatus(),
-          getStandbyStatus(),
-          getHealthStatus(),
-        ]);
+      const [
+        systemInfo,
+        audioStatus,
+        videoStatus,
+        callStatus,
+        standbyStatus,
+        healthStatus,
+        provisioningStatus,
+        sipStatus,
+      ] = await Promise.all([
+        getSystemInfo(),
+        getAudioStatus(),
+        getVideoStatus(),
+        getCallStatus(),
+        getStandbyStatus(),
+        getHealthStatus(),
+        getProvisioningStatus(),
+        getSipStatus(),
+      ]);
 
       setMonitorData({
         systemInfo,
@@ -83,6 +101,8 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
         callStatus,
         standbyStatus,
         healthStatus,
+        provisioningStatus,
+        sipStatus,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load device data";
@@ -168,6 +188,42 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
     }
   };
 
+  const getProvisioningStatusColor = (status: string) => {
+    switch (status) {
+      case "Provisioned":
+        return "success";
+      case "Provisioning":
+        return "primary";
+      case "NeedConfig":
+        return "warning";
+      case "AuthenticationFailed":
+      case "ConfigError":
+      case "Failed":
+        return "danger";
+      case "Idle":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
+  const getSipStatusColor = (status: string) => {
+    switch (status) {
+      case "Registered":
+        return "success";
+      case "Registering":
+        return "primary";
+      case "Deregister":
+        return "warning";
+      case "Failed":
+        return "danger";
+      case "Inactive":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -231,6 +287,70 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
                   : "Unknown"}
               </p>
             </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Provisioning Status */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Icon icon="solar:settings-outline" width={20} />
+            <h4 className="text-md font-medium">Provisioning Status</h4>
+          </div>
+        </CardHeader>
+        <CardBody className="pt-0 space-y-3">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-default-500">Status</p>
+              <Chip
+                color={getProvisioningStatusColor(monitorData.provisioningStatus?.status || "")}
+                size="sm"
+                variant="flat"
+              >
+                {monitorData.provisioningStatus?.status || "Unknown"}
+              </Chip>
+            </div>
+            <div>
+              <p className="text-default-500">Connectivity</p>
+              <p className="font-medium">
+                {monitorData.provisioningStatus?.connectivity || "Unknown"}
+              </p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* SIP Registration Status */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Icon icon="solar:phone-calling-outline" width={20} />
+            <h4 className="text-md font-medium">SIP Registration Status</h4>
+          </div>
+        </CardHeader>
+        <CardBody className="pt-0 space-y-3">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-default-500">Registration Status</p>
+              <Chip
+                color={getSipStatusColor(monitorData.sipStatus?.registrationStatus || "")}
+                size="sm"
+                variant="flat"
+              >
+                {monitorData.sipStatus?.registrationStatus || "Unknown"}
+              </Chip>
+            </div>
+            <div>
+              <p className="text-default-500">Display Name</p>
+              <p className="font-medium">{monitorData.sipStatus?.displayName || "Not set"}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-default-500 text-sm">SIP URI</p>
+            <p className="font-medium text-sm font-mono">
+              {monitorData.sipStatus?.uri || "Not configured"}
+            </p>
           </div>
         </CardBody>
       </Card>
