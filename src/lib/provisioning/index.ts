@@ -43,7 +43,8 @@ export { setupProvisioning } from "./service";
 // Workflows
 export {
   applyTmsConfiguration,
-  clearToWebexMode,
+  applyWebexConfiguration,
+  clearToOffMode,
   getCurrentProvisioningConfig,
   validateDeviceConnection,
 } from "./workflows";

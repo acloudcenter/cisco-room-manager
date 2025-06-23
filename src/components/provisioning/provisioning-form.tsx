@@ -24,9 +24,11 @@ import {
   defaultProvisioningFormData,
   ProvisioningMode,
   ProtocolType,
+  ConnectivityType,
 } from "./provisioning-types";
 
 import { useDeviceStore } from "@/stores/device-store";
+import { getCurrentProvisioningConfig } from "@/lib/provisioning";
 
 export default function ProvisioningForm({
   device,
@@ -37,9 +39,61 @@ export default function ProvisioningForm({
   const [formData, setFormData] = React.useState<ProvisioningFormData>(defaultProvisioningFormData);
   const [showPassword, setShowPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [isLoadingConfig, setIsLoadingConfig] = React.useState(true);
 
   // Subscribe to provisioning state from Zustand store
   const { isProvisioning, provisioningProgress, provisioningError } = useDeviceStore();
+
+  // Load current device configuration when component mounts
+  React.useEffect(() => {
+    const loadCurrentConfig = async () => {
+      try {
+        setIsLoadingConfig(true);
+        const currentConfig = await getCurrentProvisioningConfig(device);
+
+        // Map the API config to form data structure
+        // If mode is "Off" or any other unsupported mode, default to "Off"
+        let mode: ProvisioningMode = "Off";
+
+        if (currentConfig.mode === "TMS") {
+          mode = "TMS";
+        } else if (currentConfig.mode === "Webex") {
+          mode = "Webex";
+        }
+
+        const mappedFormData: ProvisioningFormData = {
+          mode,
+          connectivity: (currentConfig.connectivity as ConnectivityType) || "External",
+          externalManager: {
+            address: currentConfig.externalManager.address || "",
+            alternateAddress: currentConfig.externalManager.alternateAddress || "",
+            domain: currentConfig.externalManager.domain || "WORKGROUP",
+            path:
+              currentConfig.externalManager.path ||
+              "tms/public/external/management/SystemManagementService.asmx",
+            protocol: (currentConfig.externalManager.protocol || "HTTPS") as ProtocolType,
+          },
+          security: {
+            webexEdge: currentConfig.webexEdge === "On",
+            tlsVerify: currentConfig.tlsVerify === "On",
+          },
+          credentials: {
+            loginName: currentConfig.loginName || "",
+            password: currentConfig.password || "",
+          },
+        };
+
+        setFormData(mappedFormData);
+      } catch (error) {
+        // Fall back to defaults on error
+        // Error is handled silently to allow form to still function
+      } finally {
+        setIsLoadingConfig(false);
+      }
+    };
+
+    loadCurrentConfig();
+  }, [device]);
 
   // Auto-set connectivity to External when TMS mode is selected
   React.useEffect(() => {
@@ -71,12 +125,7 @@ export default function ProvisioningForm({
       if (!formData.externalManager.address.trim()) {
         newErrors.address = "External Manager Address is required for TMS mode";
       }
-      if (!formData.credentials.loginName.trim()) {
-        newErrors.loginName = "Login Name is required for TMS mode";
-      }
-      if (!formData.credentials.password.trim()) {
-        newErrors.password = "Password is required for TMS mode";
-      }
+      // Username and password are optional for TMS mode
     }
 
     setErrors(newErrors);
@@ -98,6 +147,21 @@ export default function ProvisioningForm({
   };
 
   const isTmsMode = formData.mode === "TMS";
+
+  // Show loading state while fetching current config
+  if (isLoadingConfig) {
+    return (
+      <Card className="bg-default-50">
+        <CardBody className="flex flex-row items-center gap-4 p-6">
+          <CircularProgress size="md" />
+          <div>
+            <p className="text-sm font-medium">Loading Current Configuration...</p>
+            <p className="text-xs text-default-500">Reading device settings...</p>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -128,13 +192,16 @@ export default function ProvisioningForm({
               handleModeChange(mode);
             }}
           >
+            <SelectItem key="Off">Off (No Provisioning)</SelectItem>
             <SelectItem key="Webex">Webex</SelectItem>
             <SelectItem key="TMS">TMS (Telepresence Management Suite)</SelectItem>
           </Select>
           <p className="text-xs text-default-400 mt-2">
-            {formData.mode === "Webex"
-              ? "Device will register with Cisco Webex cloud service"
-              : "Device will register with on-premises TMS server"}
+            {formData.mode === "Off"
+              ? "Device will not be configured by any provisioning system"
+              : formData.mode === "Webex"
+                ? "Device will register with Cisco Webex cloud service"
+                : "Device will register with on-premises TMS server"}
           </p>
         </CardBody>
       </Card>
@@ -160,9 +227,7 @@ export default function ProvisioningForm({
           {isTmsMode && (
             <>
               <Input
-                description="Username for TMS authentication"
-                errorMessage={errors.loginName}
-                isInvalid={!!errors.loginName}
+                description="Username for TMS authentication (optional)"
                 label="LoginName"
                 placeholder="tms-user"
                 value={formData.credentials.loginName}
@@ -175,7 +240,7 @@ export default function ProvisioningForm({
               />
 
               <Input
-                description="Password for TMS authentication"
+                description="Password for TMS authentication (optional)"
                 endContent={
                   <Button
                     isIconOnly
@@ -189,8 +254,6 @@ export default function ProvisioningForm({
                     />
                   </Button>
                 }
-                errorMessage={errors.password}
-                isInvalid={!!errors.password}
                 label="Password"
                 placeholder="Enter password"
                 type={showPassword ? "text" : "password"}

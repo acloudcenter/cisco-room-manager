@@ -4,6 +4,7 @@
  */
 
 import type { ConnectedDevice } from "@/stores/device-store";
+import type { ProvisioningConfig } from "@/lib/provisioning";
 
 import React from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Divider, CircularProgress } from "@heroui/react";
@@ -15,17 +16,6 @@ import { getCurrentProvisioningConfig } from "@/lib/provisioning";
 interface CurrentConfigDisplayProps {
   device: ConnectedDevice;
   onEdit: () => void;
-}
-
-interface ProvisioningConfig {
-  mode: string;
-  connectivity?: string;
-  loginName?: string;
-  password?: string;
-  externalManagerAddress?: string;
-  externalManagerDomain?: string;
-  externalManagerPath?: string;
-  externalManagerProtocol?: string;
 }
 
 export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDisplayProps) {
@@ -107,7 +97,14 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
       case "TMS":
         return "primary";
       case "CUCM":
+      case "Edge":
         return "warning";
+      case "VCS":
+        return "secondary";
+      case "Off":
+        return "default";
+      case "Auto":
+        return "primary";
       default:
         return "default";
     }
@@ -169,6 +166,26 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
                 <p className="text-sm font-medium text-default-700">TMS Configuration</p>
                 <div className="grid grid-cols-1 gap-3 text-sm">
                   <div>
+                    <p className="text-default-500">External Manager Address</p>
+                    <p className="font-medium font-mono">
+                      {config?.externalManager.address || "Not set"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">Domain</p>
+                    <p className="font-medium">{config?.externalManager.domain || "Not set"}</p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">Path</p>
+                    <p className="font-medium font-mono">
+                      {config?.externalManager.path || "Not set"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">Protocol</p>
+                    <p className="font-medium">{config?.externalManager.protocol || "HTTPS"}</p>
+                  </div>
+                  <div>
                     <p className="text-default-500">Login Name</p>
                     <p className="font-medium">{config?.loginName || "Not set"}</p>
                   </div>
@@ -176,29 +193,40 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
                     <p className="text-default-500">Password</p>
                     <p className="font-medium">{config?.password ? "••••••••" : "Not set"}</p>
                   </div>
-                  <div>
-                    <p className="text-default-500">External Manager Address</p>
-                    <p className="font-medium">{config?.externalManagerAddress || "Not set"}</p>
-                  </div>
-                  {config?.externalManagerDomain && (
-                    <div>
-                      <p className="text-default-500">Domain</p>
-                      <p className="font-medium">{config.externalManagerDomain}</p>
-                    </div>
-                  )}
-                  {config?.externalManagerPath && (
-                    <div>
-                      <p className="text-default-500">Path</p>
-                      <p className="font-medium">{config.externalManagerPath}</p>
-                    </div>
-                  )}
-                  {config?.externalManagerProtocol && (
-                    <div>
-                      <p className="text-default-500">Protocol</p>
-                      <p className="font-medium">{config.externalManagerProtocol}</p>
-                    </div>
-                  )}
                 </div>
+              </div>
+            </>
+          )}
+
+          {/* Webex Configuration */}
+          {config?.mode === "Webex" && (
+            <>
+              <Divider />
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-default-700">Webex Configuration</p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-default-500">TLS Verify</p>
+                    <p className="font-medium">{config?.tlsVerify || "On"}</p>
+                  </div>
+                  <div>
+                    <p className="text-default-500">Webex Edge</p>
+                    <p className="font-medium">{config?.webexEdge || "Off"}</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Off Mode */}
+          {config?.mode === "Off" && (
+            <>
+              <Divider />
+              <div className="p-3 bg-default-100 rounded-lg">
+                <p className="text-sm text-default-600">
+                  Provisioning is currently disabled. The device is not configured by any
+                  provisioning system.
+                </p>
               </div>
             </>
           )}

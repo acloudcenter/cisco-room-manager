@@ -35,5 +35,13 @@ export interface ExternalManagerConfig {
   domain?: string;
 }
 
-export type ProvisioningMode = "Off" | "TMS" | "VCS" | "CUCM" | "ExternalManager" | "Auto";
+export type ProvisioningMode =
+  | "Off"
+  | "TMS"
+  | "VCS"
+  | "CUCM"
+  | "ExternalManager"
+  | "Auto"
+  | "Webex"
+  | "Edge";
 export type ConnectivityType = "Internal" | "External" | "Auto";

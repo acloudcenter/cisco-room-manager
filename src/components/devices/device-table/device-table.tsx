@@ -45,7 +45,7 @@ import {
   ProvisioningFormData,
 } from "@/components/provisioning";
 import { DeviceMonitorDisplay } from "@/components/monitoring";
-import { applyTmsConfiguration, clearToWebexMode } from "@/lib/provisioning";
+import { applyTmsConfiguration, applyWebexConfiguration, clearToOffMode } from "@/lib/provisioning";
 
 // Empty state component
 const EmptyState = () => (
@@ -237,7 +237,9 @@ export default function DeviceTable() {
       if (formData.mode === "TMS") {
         await applyTmsConfiguration(selectedDevice, formData);
       } else if (formData.mode === "Webex") {
-        await clearToWebexMode(selectedDevice);
+        await applyWebexConfiguration(selectedDevice, formData);
+      } else if (formData.mode === "Off") {
+        await clearToOffMode(selectedDevice);
       } else {
         throw new Error(`Unsupported provisioning mode: ${formData.mode}`);
       }

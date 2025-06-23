@@ -29,14 +29,7 @@ export const validateTmsFormData = (formData: ProvisioningFormData): ValidationR
       errors.push("External Manager Address is required for TMS mode");
     }
 
-    // Credentials are required for TMS
-    if (!formData.credentials.loginName?.trim()) {
-      errors.push("Login Name is required for TMS mode");
-    }
-
-    if (!formData.credentials.password?.trim()) {
-      errors.push("Password is required for TMS mode");
-    }
+    // Credentials are optional for TMS - no validation required
 
     // Validate External Manager Address format (basic URL validation)
     if (formData.externalManager.address) {

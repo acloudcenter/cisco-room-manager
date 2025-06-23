@@ -117,10 +117,10 @@ export const applyTmsConfiguration = async (
 };
 
 /**
- * Configure device for Webex mode with default cloud settings
- * Switches device to Webex mode regardless of current state
+ * Clear provisioning and set device to Off mode
+ * This removes any provisioning configuration
  */
-export const clearToWebexMode = async (_device: ConnectedDevice): Promise<void> => {
+export const clearToOffMode = async (_device: ConnectedDevice): Promise<void> => {
   const { setProvisioningState, setProvisioningError } = useDeviceStore.getState();
 
   try {
@@ -136,20 +136,76 @@ export const clearToWebexMode = async (_device: ConnectedDevice): Promise<void> 
     // Step 2: Check current state (device can be in any mode)
     await getProvisioningConfig();
 
-    setProvisioningState(true, "Clearing to Webex mode...");
+    setProvisioningState(true, "Clearing provisioning...");
 
-    // Step 3: Switch to Webex mode (auto-clears all TMS configuration)
+    // Step 3: Switch to Off mode (clears all provisioning configuration)
     await setProvisioningMode("Off");
 
     // Give device time to process
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Step 4: Verify we're back in Webex mode
-    setProvisioningState(true, "Verifying Webex mode...");
+    // Step 4: Verify provisioning is off
+    setProvisioningState(true, "Verifying provisioning is disabled...");
     const finalConfig = await getProvisioningConfig();
 
     if (finalConfig.mode !== "Off") {
-      throw new Error("Device may not have fully switched to Webex mode yet");
+      throw new Error("Device may not have fully cleared provisioning yet");
+    }
+
+    setProvisioningState(false);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+
+    setProvisioningError(errorMessage);
+    setProvisioningState(false);
+    throw error;
+  } finally {
+    // Don't disconnect - keep existing connection for the UI
+  }
+};
+
+/**
+ * Configure device for Webex mode
+ * Switches device to Webex cloud registration
+ */
+export const applyWebexConfiguration = async (
+  _device: ConnectedDevice,
+  formData: ProvisioningFormData,
+): Promise<void> => {
+  const { setProvisioningState, setProvisioningError } = useDeviceStore.getState();
+
+  try {
+    setProvisioningState(true, "Checking device connection...");
+
+    // Step 1: Verify existing connection
+    if (!ciscoConnectionService.isConnected()) {
+      throw new Error("Device not connected. Please connect to device first.");
+    }
+
+    setProvisioningState(true, "Switching to Webex mode...");
+
+    // Step 2: Set mode to Webex
+    await setProvisioningMode("Webex");
+
+    // Give device time to process mode change
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Step 3: Apply security settings from form
+    if (formData.security.tlsVerify !== undefined) {
+      setProvisioningState(true, "Configuring security settings...");
+      await setTlsVerify(formData.security.tlsVerify);
+    }
+
+    if (formData.security.webexEdge !== undefined) {
+      await setWebexEdge(formData.security.webexEdge);
+    }
+
+    // Step 4: Verify final configuration
+    setProvisioningState(true, "Verifying configuration...");
+    const finalConfig = await getProvisioningConfig();
+
+    if (finalConfig.mode !== "Webex") {
+      throw new Error("Configuration applied but device not in Webex mode");
     }
 
     setProvisioningState(false);

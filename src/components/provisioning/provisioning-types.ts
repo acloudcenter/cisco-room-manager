@@ -2,7 +2,7 @@
  * Types and interfaces for provisioning functionality
  */
 
-export type ProvisioningMode = "Webex" | "TMS";
+export type ProvisioningMode = "Webex" | "TMS" | "Off";
 export type ConnectivityType = "Internal" | "External" | "Auto";
 export type ProtocolType = "HTTP" | "HTTPS";
 
@@ -35,7 +35,7 @@ export interface ProvisioningFormProps {
 
 // Default form values
 export const defaultProvisioningFormData: ProvisioningFormData = {
-  mode: "Webex",
+  mode: "Off",
   connectivity: "External",
   externalManager: {
     address: "",
