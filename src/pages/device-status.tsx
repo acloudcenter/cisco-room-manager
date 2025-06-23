@@ -3,12 +3,15 @@ import { Card, CardBody, CardHeader, Button, Chip, Spinner } from "@heroui/react
 
 import { ciscoConnectionService } from "@/services/cisco-connection-service";
 import {
-  ciscoStatusService,
-  SystemInfo,
-  AudioStatus,
-  CallStatus,
-  StandbyStatus,
-} from "@/services/cisco-status-service";
+  getSystemInfo,
+  getAudioStatus,
+  getCallStatus,
+  getStandbyStatus,
+  type SystemInfo,
+  type AudioStatus,
+  type CallStatus,
+  type StandbyStatus,
+} from "@/lib/device-status";
 
 export default function DeviceStatusPage() {
   const [isConnected, setIsConnected] = useState(false);
@@ -36,10 +39,10 @@ export default function DeviceStatusPage() {
 
     try {
       const [system, audio, call, standby] = await Promise.all([
-        ciscoStatusService.getSystemInfo(),
-        ciscoStatusService.getAudioStatus(),
-        ciscoStatusService.getCallStatus(),
-        ciscoStatusService.getStandbyStatus(),
+        getSystemInfo(),
+        getAudioStatus(),
+        getCallStatus(),
+        getStandbyStatus(),
       ]);
 
       setSystemInfo(system);

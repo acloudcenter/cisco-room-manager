@@ -10,7 +10,7 @@ import type {
   VideoStatus,
   CallStatus,
   StandbyStatus,
-} from "@/services/cisco-status-service";
+} from "@/lib/device-status";
 
 import React from "react";
 import {
@@ -25,7 +25,14 @@ import {
 import { Icon } from "@iconify/react";
 
 import { useDeviceStore } from "@/stores/device-store";
-import { ciscoStatusService } from "@/services/cisco-status-service";
+import {
+  getSystemInfo,
+  getAudioStatus,
+  getVideoStatus,
+  getCallStatus,
+  getStandbyStatus,
+  getHealthStatus,
+} from "@/lib/device-status";
 
 interface DeviceMonitorDisplayProps {
   device: ConnectedDevice;
@@ -61,12 +68,12 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
       // Load all device status data
       const [systemInfo, audioStatus, videoStatus, callStatus, standbyStatus, healthStatus] =
         await Promise.all([
-          ciscoStatusService.getSystemInfo(),
-          ciscoStatusService.getAudioStatus(),
-          ciscoStatusService.getVideoStatus(),
-          ciscoStatusService.getCallStatus(),
-          ciscoStatusService.getStandbyStatus(),
-          ciscoStatusService.getHealthStatus(),
+          getSystemInfo(),
+          getAudioStatus(),
+          getVideoStatus(),
+          getCallStatus(),
+          getStandbyStatus(),
+          getHealthStatus(),
         ]);
 
       setMonitorData({

@@ -9,8 +9,21 @@
 import type { ProvisioningFormData } from "@/components/provisioning/provisioning-types";
 import type { ConnectedDevice } from "@/stores/device-store";
 
+import {
+  getProvisioningConfig,
+  setProvisioningMode,
+  setConnectivity,
+  setExternalManagerAddress,
+  setExternalManagerDomain,
+  setExternalManagerPath,
+  setExternalManagerProtocol,
+  setLoginName,
+  setPassword,
+  setTlsVerify,
+  setWebexEdge,
+} from "./index";
+
 import { ciscoConnectionService } from "@/services/cisco-connection-service";
-import { ciscoProvisioningService } from "@/services/cisco-provisioning-service";
 import { useDeviceStore } from "@/stores/device-store";
 
 /**
@@ -34,60 +47,58 @@ export const applyTmsConfiguration = async (
     setProvisioningState(true, "Checking current configuration...");
 
     // Step 2: Check current state (device can be in any mode)
-    await ciscoProvisioningService.getProvisioningConfig();
+    await getProvisioningConfig();
 
     // Step 3: Switch to TMS mode
     setProvisioningState(true, "Switching to TMS mode...");
-    await ciscoProvisioningService.setProvisioningMode("TMS");
+    await setProvisioningMode("TMS");
 
     // Give device time to process mode change
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Step 4: Set connectivity to External
     setProvisioningState(true, "Setting connectivity to External...");
-    await ciscoProvisioningService.setConnectivity("External");
+    await setConnectivity("External");
 
     // Step 5: Configure External Manager settings
     if (formData.externalManager.address) {
       setProvisioningState(true, "Configuring external manager...");
 
-      await ciscoProvisioningService.setExternalManagerAddress(formData.externalManager.address);
+      await setExternalManagerAddress(formData.externalManager.address);
 
       if (formData.externalManager.domain) {
-        await ciscoProvisioningService.setExternalManagerDomain(formData.externalManager.domain);
+        await setExternalManagerDomain(formData.externalManager.domain);
       }
 
       if (formData.externalManager.path) {
-        await ciscoProvisioningService.setExternalManagerPath(formData.externalManager.path);
+        await setExternalManagerPath(formData.externalManager.path);
       }
 
       if (formData.externalManager.protocol) {
-        await ciscoProvisioningService.setExternalManagerProtocol(
-          formData.externalManager.protocol,
-        );
+        await setExternalManagerProtocol(formData.externalManager.protocol);
       }
     }
 
     // Step 6: Set credentials
     if (formData.credentials.loginName && formData.credentials.password) {
       setProvisioningState(true, "Setting credentials...");
-      await ciscoProvisioningService.setLoginName(formData.credentials.loginName);
-      await ciscoProvisioningService.setPassword(formData.credentials.password);
+      await setLoginName(formData.credentials.loginName);
+      await setPassword(formData.credentials.password);
     }
 
     // Step 7: Apply security settings
     if (formData.security.tlsVerify !== undefined) {
       setProvisioningState(true, "Configuring security settings...");
-      await ciscoProvisioningService.setTlsVerify(formData.security.tlsVerify);
+      await setTlsVerify(formData.security.tlsVerify);
     }
 
     if (formData.security.webexEdge !== undefined) {
-      await ciscoProvisioningService.setWebexEdge(formData.security.webexEdge);
+      await setWebexEdge(formData.security.webexEdge);
     }
 
     // Step 8: Verify final configuration
     setProvisioningState(true, "Verifying configuration...");
-    const finalConfig = await ciscoProvisioningService.getProvisioningConfig();
+    const finalConfig = await getProvisioningConfig();
 
     if (finalConfig.mode !== "TMS") {
       throw new Error("Configuration applied but device not in TMS mode");
@@ -123,19 +134,19 @@ export const clearToWebexMode = async (_device: ConnectedDevice): Promise<void> 
     setProvisioningState(true, "Checking current configuration...");
 
     // Step 2: Check current state (device can be in any mode)
-    await ciscoProvisioningService.getProvisioningConfig();
+    await getProvisioningConfig();
 
     setProvisioningState(true, "Clearing to Webex mode...");
 
     // Step 3: Switch to Webex mode (auto-clears all TMS configuration)
-    await ciscoProvisioningService.setProvisioningMode("Off");
+    await setProvisioningMode("Off");
 
     // Give device time to process
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Step 4: Verify we're back in Webex mode
     setProvisioningState(true, "Verifying Webex mode...");
-    const finalConfig = await ciscoProvisioningService.getProvisioningConfig();
+    const finalConfig = await getProvisioningConfig();
 
     if (finalConfig.mode !== "Off") {
       throw new Error("Device may not have fully switched to Webex mode yet");
@@ -167,7 +178,7 @@ export const getCurrentProvisioningConfig = async (_device: ConnectedDevice) => 
       throw new Error("Device not connected. Please connect to device first.");
     }
 
-    const config = await ciscoProvisioningService.getProvisioningConfig();
+    const config = await getProvisioningConfig();
 
     setProvisioningState(false);
 
