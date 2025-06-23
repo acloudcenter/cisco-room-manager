@@ -26,6 +26,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Divider,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -87,7 +88,7 @@ interface DeviceTableRowData {
 }
 
 export default function DeviceTable() {
-  const { devices, disconnectDevice } = useDeviceStore();
+  const { devices, disconnectDevice, drawerMode } = useDeviceStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onClose: onConfirmClose } = useDisclosure();
 
@@ -261,6 +262,52 @@ export default function DeviceTable() {
     setIsProvisioningEditMode(true);
   };
 
+  // Render drawer content based on action
+  const renderDrawerContent = () => {
+    if (drawerAction === "provision" && selectedDevice) {
+      return isProvisioningEditMode ? (
+        <ProvisioningForm
+          device={selectedDevice}
+          onCancel={handleProvisioningCancel}
+          onSubmit={handleProvisioningSubmit}
+        />
+      ) : (
+        <CurrentConfigDisplay device={selectedDevice} onEdit={handleProvisioningEdit} />
+      );
+    } else if (drawerAction === "monitor" && selectedDevice) {
+      return <DeviceMonitorDisplay device={selectedDevice} />;
+    } else {
+      return (
+        <div className="flex flex-col gap-4">
+          <div className="p-4 bg-default-100 rounded-lg">
+            <p className="text-center text-default-600">
+              {drawerAction.startsWith("bulk-") ? (
+                <>
+                  Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
+                  implemented here.
+                </>
+              ) : (
+                <>{capitalize(drawerAction)} functionality will be implemented here.</>
+              )}
+            </p>
+            <div className="mt-4 flex justify-center">
+              <Icon
+                className="text-default-400"
+                height={48}
+                icon={
+                  drawerAction.startsWith("bulk-")
+                    ? "heroicons:squares-2x2"
+                    : "heroicons:wrench-screwdriver"
+                }
+                width={48}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
     const cellValue = device[columnKey as keyof DeviceTableRowData];
 
@@ -387,7 +434,7 @@ export default function DeviceTable() {
             onClear={() => onClear()}
             onValueChange={onSearchChange}
           />
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <Dropdown isDisabled={selectedCount === 0}>
               <DropdownTrigger>
                 <Button
@@ -517,53 +564,73 @@ export default function DeviceTable() {
   }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
 
   return (
-    <>
-      <Table
-        isHeaderSticky
-        aria-label="Device management table"
-        bottomContent={bottomContent}
-        bottomContentPlacement="outside"
-        classNames={{
-          wrapper: "max-h-[600px]",
-        }}
-        selectedKeys={selectedKeys}
-        selectionMode="multiple"
-        sortDescriptor={sortDescriptor}
-        topContent={topContent}
-        topContentPlacement="outside"
-        onSelectionChange={setSelectedKeys}
-        onSortChange={setSortDescriptor}
+    <div
+      className={`flex gap-4 ${isOpen && drawerMode === "push" ? "transition-all duration-300" : ""}`}
+    >
+      <div
+        className={`flex-1 ${isOpen && drawerMode === "push" ? "max-w-[calc(100%-25rem)]" : ""} transition-all duration-300`}
       >
-        <TableHeader columns={headerColumns}>
-          {(column) => (
-            <TableColumn
-              key={column.uid}
-              align={column.uid === "actions" ? "center" : "start"}
-              allowsSorting={column.sortable}
-            >
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody emptyContent={<EmptyState />} items={sortedItems}>
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+        <Table
+          isHeaderSticky
+          aria-label="Device management table"
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          classNames={{
+            wrapper: "max-h-[600px]",
+          }}
+          selectedKeys={selectedKeys}
+          selectionMode="multiple"
+          sortDescriptor={sortDescriptor}
+          topContent={topContent}
+          topContentPlacement="outside"
+          onSelectionChange={setSelectedKeys}
+          onSortChange={setSortDescriptor}
+        >
+          <TableHeader columns={headerColumns}>
+            {(column) => (
+              <TableColumn
+                key={column.uid}
+                align={column.uid === "actions" ? "center" : "start"}
+                allowsSorting={column.sortable}
+              >
+                {column.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={<EmptyState />} items={sortedItems}>
+            {(item) => (
+              <TableRow key={item.id}>
+                {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-      <Drawer isOpen={isOpen} placement="right" size="md" onClose={onClose}>
-        <DrawerContent>
-          <DrawerHeader className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Icon className="text-primary" height={24} icon="heroicons:cog-6-tooth" width={24} />
-              <h2 className="text-xl font-semibold">
-                {capitalize(drawerAction.replace("bulk-", ""))} Device
-                {drawerAction.startsWith("bulk-") ? "s" : ""}
-              </h2>
+      {/* Drawer - either overlay or push mode */}
+      {drawerMode === "push" && isOpen ? (
+        <div className="w-96 border-l border-divider bg-background p-4 overflow-y-auto">
+          <div className="flex flex-col gap-4">
+            {/* Header with close button */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon
+                  className="text-primary"
+                  height={24}
+                  icon="heroicons:cog-6-tooth"
+                  width={24}
+                />
+                <h2 className="text-xl font-semibold">
+                  {capitalize(drawerAction.replace("bulk-", ""))} Device
+                  {drawerAction.startsWith("bulk-") ? "s" : ""}
+                </h2>
+              </div>
+              <Button isIconOnly size="sm" variant="light" onPress={onClose}>
+                <Icon icon="heroicons:x-mark" width={20} />
+              </Button>
             </div>
+
+            {/* Device info */}
             {selectedDevice && (
               <p className="text-small text-default-500">
                 {drawerAction.startsWith("bulk-")
@@ -571,51 +638,131 @@ export default function DeviceTable() {
                   : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
               </p>
             )}
-          </DrawerHeader>
-          <DrawerBody>
-            {drawerAction === "provision" && selectedDevice ? (
-              isProvisioningEditMode ? (
-                <ProvisioningForm
-                  device={selectedDevice}
-                  onCancel={handleProvisioningCancel}
-                  onSubmit={handleProvisioningSubmit}
-                />
-              ) : (
-                <CurrentConfigDisplay device={selectedDevice} onEdit={handleProvisioningEdit} />
-              )
-            ) : drawerAction === "monitor" && selectedDevice ? (
-              <DeviceMonitorDisplay device={selectedDevice} />
-            ) : (
-              <div className="flex flex-col gap-4">
-                <div className="p-4 bg-default-100 rounded-lg">
-                  <p className="text-center text-default-600">
-                    {drawerAction.startsWith("bulk-") ? (
-                      <>
-                        Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
-                        implemented here.
-                      </>
-                    ) : (
-                      <>{capitalize(drawerAction)} functionality will be implemented here.</>
-                    )}
-                  </p>
-                  <div className="mt-4 flex justify-center">
-                    <Icon
-                      className="text-default-400"
-                      height={48}
-                      icon={
-                        drawerAction.startsWith("bulk-")
-                          ? "heroicons:squares-2x2"
-                          : "heroicons:wrench-screwdriver"
-                      }
-                      width={48}
-                    />
-                  </div>
-                </div>
+
+            {/* Action navigation */}
+            {selectedDevice && !drawerAction.startsWith("bulk-") && (
+              <div className="flex gap-2">
+                <Button
+                  color={drawerAction === "monitor" ? "primary" : "default"}
+                  size="sm"
+                  startContent={<Icon icon="solar:monitor-outline" width={16} />}
+                  variant={drawerAction === "monitor" ? "solid" : "flat"}
+                  onPress={() => {
+                    setDrawerAction("monitor");
+                    setIsProvisioningEditMode(false);
+                  }}
+                >
+                  Monitor
+                </Button>
+                <Button
+                  color={drawerAction === "configure" ? "primary" : "default"}
+                  size="sm"
+                  startContent={<Icon icon="solar:settings-outline" width={16} />}
+                  variant={drawerAction === "configure" ? "solid" : "flat"}
+                  onPress={() => {
+                    setDrawerAction("configure");
+                    setIsProvisioningEditMode(false);
+                  }}
+                >
+                  Configure
+                </Button>
+                <Button
+                  color={drawerAction === "provision" ? "primary" : "default"}
+                  size="sm"
+                  startContent={<Icon icon="solar:shield-check-outline" width={16} />}
+                  variant={drawerAction === "provision" ? "solid" : "flat"}
+                  onPress={() => {
+                    setDrawerAction("provision");
+                    setIsProvisioningEditMode(false);
+                  }}
+                >
+                  Provision
+                </Button>
               </div>
             )}
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
+
+            <Divider />
+
+            {/* Content */}
+            <div className="flex-1">{renderDrawerContent()}</div>
+          </div>
+        </div>
+      ) : (
+        <Drawer isOpen={isOpen} placement="right" size="md" onClose={onClose}>
+          <DrawerContent>
+            <DrawerHeader className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Icon
+                  className="text-primary"
+                  height={24}
+                  icon="heroicons:cog-6-tooth"
+                  width={24}
+                />
+                <h2 className="text-xl font-semibold">
+                  {capitalize(drawerAction.replace("bulk-", ""))} Device
+                  {drawerAction.startsWith("bulk-") ? "s" : ""}
+                </h2>
+              </div>
+              {selectedDevice && (
+                <p className="text-small text-default-500">
+                  {drawerAction.startsWith("bulk-")
+                    ? `${selectedCount} devices selected`
+                    : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
+                </p>
+              )}
+            </DrawerHeader>
+            <DrawerBody>
+              <div className="flex flex-col gap-4">
+                {/* Action navigation for overlay mode */}
+                {selectedDevice && !drawerAction.startsWith("bulk-") && (
+                  <>
+                    <div className="flex gap-2">
+                      <Button
+                        color={drawerAction === "monitor" ? "primary" : "default"}
+                        size="sm"
+                        startContent={<Icon icon="solar:monitor-outline" width={16} />}
+                        variant={drawerAction === "monitor" ? "solid" : "flat"}
+                        onPress={() => {
+                          setDrawerAction("monitor");
+                          setIsProvisioningEditMode(false);
+                        }}
+                      >
+                        Monitor
+                      </Button>
+                      <Button
+                        color={drawerAction === "configure" ? "primary" : "default"}
+                        size="sm"
+                        startContent={<Icon icon="solar:settings-outline" width={16} />}
+                        variant={drawerAction === "configure" ? "solid" : "flat"}
+                        onPress={() => {
+                          setDrawerAction("configure");
+                          setIsProvisioningEditMode(false);
+                        }}
+                      >
+                        Configure
+                      </Button>
+                      <Button
+                        color={drawerAction === "provision" ? "primary" : "default"}
+                        size="sm"
+                        startContent={<Icon icon="solar:shield-check-outline" width={16} />}
+                        variant={drawerAction === "provision" ? "solid" : "flat"}
+                        onPress={() => {
+                          setDrawerAction("provision");
+                          setIsProvisioningEditMode(false);
+                        }}
+                      >
+                        Provision
+                      </Button>
+                    </div>
+                    <Divider />
+                  </>
+                )}
+                {renderDrawerContent()}
+              </div>
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* Disconnect Confirmation Modal */}
       <Modal isOpen={isConfirmOpen} placement="center" size="sm" onClose={onConfirmClose}>
@@ -653,6 +800,6 @@ export default function DeviceTable() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </div>
   );
 }

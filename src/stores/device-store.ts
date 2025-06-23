@@ -22,6 +22,7 @@ interface DeviceState {
   // UI State
   isConnecting: boolean;
   connectionError: string | null;
+  drawerMode: "push" | "overlay";
 
   // Provisioning State
   isProvisioning: boolean;
@@ -35,12 +36,14 @@ interface DeviceState {
   getCurrentDevice: () => ConnectedDevice | null;
   setProvisioningState: (isProvisioning: boolean, progress?: string) => void;
   setProvisioningError: (error: string | null) => void;
+  setDrawerMode: (mode: "push" | "overlay") => void;
 }
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
   devices: [],
   isConnecting: false,
   connectionError: null,
+  drawerMode: "overlay", // Default to overlay mode
   isProvisioning: false,
   provisioningProgress: null,
   provisioningError: null,
@@ -118,5 +121,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   setProvisioningError: (error: string | null) => {
     set({ provisioningError: error });
+  },
+
+  setDrawerMode: (mode: "push" | "overlay") => {
+    set({ drawerMode: mode });
   },
 }));
