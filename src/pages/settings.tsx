@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 
 import SidebarLayout from "@/layouts/sidebar-layout";
 import { useDeviceStore } from "@/stores/device-store";
+import { ThemeSwitch } from "@/components/common/theme-switch";
 
 export default function SettingsPage() {
   const { drawerMode, setDrawerMode } = useDeviceStore();
@@ -61,6 +62,19 @@ export default function SettingsPage() {
                   />
                   <span className="text-sm text-default-600">Push</span>
                 </div>
+              </div>
+
+              <Divider />
+
+              {/* Theme Setting */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium">Theme</h3>
+                  <p className="text-xs text-default-500 mt-1">
+                    Choose between light and dark theme for the application
+                  </p>
+                </div>
+                <ThemeSwitch />
               </div>
 
               <Divider />
