@@ -26,21 +26,20 @@ export async function getCACertificates(
     // Parse the response to extract certificates
     const certificates: Certificate[] = [];
 
-    if (response?.Certificate) {
-      const certs = Array.isArray(response.Certificate)
-        ? response.Certificate
-        : [response.Certificate];
+    // Check for Details array (Text format response)
+    if (response?.Details) {
+      const certs = Array.isArray(response.Details) ? response.Details : [response.Details];
 
       for (const cert of certs) {
         if (cert.Fingerprint) {
           certificates.push({
             fingerprint: cert.Fingerprint || "",
-            subject: cert.Subject || "",
-            issuer: cert.Issuer || "",
-            notBefore: cert.NotBefore || "",
-            notAfter: cert.NotAfter || "",
+            subject: cert.SubjectName || "",
+            issuer: cert.IssuerName || "",
+            notBefore: cert.notBefore || "",
+            notAfter: cert.notAfter || "",
             serialNumber: cert.SerialNumber,
-            signatureAlgorithm: cert.SignatureAlgorithm,
+            signatureAlgorithm: cert.SignatureAlgorithm || cert.HashingAlgorithm,
           });
         }
       }

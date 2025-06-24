@@ -13,7 +13,7 @@ import {
   getCTLInfo,
   getITLInfo,
 } from "../../../src/lib/security";
-import { connectToDevice } from "../../../src/lib/device-connection";
+import { ciscoConnectionService } from "../../../src/services/cisco-connection-service";
 
 // Load environment variables
 config({ path: join(process.cwd(), ".env") });
@@ -53,7 +53,7 @@ async function testCertificateOperations() {
   try {
     // Step 1: Connect to device
     console.log("1️⃣ Connecting to device...");
-    await connectToDevice(TEST_DEVICE);
+    await ciscoConnectionService.connect(TEST_DEVICE);
     console.log("✅ Connected successfully\n");
 
     // Step 2: List existing CA certificates
