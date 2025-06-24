@@ -12,6 +12,7 @@ import {
 import { DeviceStatusDisplay } from "@/components/status";
 import { BookingsDisplay } from "@/components/bookings";
 import { ConfigurationDisplay } from "@/components/configuration";
+import { SecurityDisplay } from "@/components/security";
 
 interface DeviceDrawerContentProps {
   action: string;
@@ -62,6 +63,10 @@ export const DeviceDrawerContent: React.FC<DeviceDrawerContentProps> = ({
 
   if (action === "configure") {
     return <ConfigurationDisplay device={device} />;
+  }
+
+  if (action === "security") {
+    return <SecurityDisplay />;
   }
 
   // Default content for unimplemented actions
