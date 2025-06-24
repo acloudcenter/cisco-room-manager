@@ -1,4 +1,5 @@
 import type { ConnectedDevice } from "@/stores/device-store";
+import type { Macro } from "@/lib/macros";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -19,12 +20,7 @@ import {
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-import { ciscoConnectionService } from "@/services/cisco-connection-service";
-
-interface Macro {
-  name: string;
-  active: boolean;
-}
+import { getMacroList, getMacro, saveMacro, toggleMacroStatus, removeMacro } from "@/lib/macros";
 
 interface MacrosSectionProps {
   device: ConnectedDevice;
@@ -64,42 +60,12 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     setError(null);
 
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const macroList = await getMacroList();
 
-      if (!xapi) {
-        throw new Error("No device connection");
-      }
-
-      // Get list of macros
-      const macroList = await xapi.command("Macros Macro List");
-
-      if (macroList?.Macro) {
-        const macroArray = Array.isArray(macroList.Macro) ? macroList.Macro : [macroList.Macro];
-        const macrosWithStatus = await Promise.all(
-          macroArray.map(async (macro: any) => {
-            try {
-              const status = await xapi.status.get(`Macros Macro ${macro.Name} Status`);
-
-              return {
-                name: macro.Name,
-                active: status === "Running",
-              };
-            } catch {
-              return {
-                name: macro.Name,
-                active: false,
-              };
-            }
-          }),
-        );
-
-        setMacros(macrosWithStatus);
-      } else {
-        setMacros([]);
-      }
+      setMacros(macroList);
     } catch (error) {
       console.error("Error fetching macros:", error);
-      setError("Failed to fetch macros");
+      setError(error instanceof Error ? error.message : "Failed to fetch macros");
       setMacros([]);
     } finally {
       setLoading(false);
@@ -108,39 +74,27 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
 
   const viewMacro = async (macro: Macro) => {
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const macroDetails = await getMacro(macro.name);
 
-      if (!xapi) {
-        throw new Error("No device connection");
-      }
-
-      const result = await xapi.command("Macros Macro Get", { Name: macro.name });
-
-      setMacroContent(result.Macro);
+      setMacroContent(macroDetails.content);
       setSelectedMacro(macro);
       onViewOpen();
     } catch (error) {
       console.error("Error fetching macro content:", error);
-      setError("Failed to fetch macro content");
+      setError(error instanceof Error ? error.message : "Failed to fetch macro content");
     }
   };
 
   const uploadMacro = async () => {
     try {
-      const xapi = ciscoConnectionService.getConnector();
-
-      if (!xapi) {
-        throw new Error("No device connection");
-      }
-
-      await xapi.command("Macros Macro Save", {
-        Name: newMacroName,
-        Content: newMacroContent,
-        Overwrite: "True",
+      const result = await saveMacro(newMacroName, newMacroContent, {
+        overwrite: true,
+        activate: true,
       });
 
-      // Activate the macro
-      await xapi.command("Macros Macro Activate", { Name: newMacroName });
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save macro");
+      }
 
       onUploadOpenChange();
       setNewMacroName("");
@@ -148,7 +102,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
       fetchMacros();
     } catch (error) {
       console.error("Error uploading macro:", error);
-      setError("Failed to upload macro");
+      setError(error instanceof Error ? error.message : "Failed to upload macro");
     }
   };
 
@@ -156,41 +110,33 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     if (!selectedMacro) return;
 
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const result = await removeMacro(selectedMacro.name);
 
-      if (!xapi) {
-        throw new Error("No device connection");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to remove macro");
       }
-
-      await xapi.command("Macros Macro Remove", { Name: selectedMacro.name });
 
       onDeleteOpenChange();
       setSelectedMacro(null);
       fetchMacros();
     } catch (error) {
       console.error("Error deleting macro:", error);
-      setError("Failed to delete macro");
+      setError(error instanceof Error ? error.message : "Failed to delete macro");
     }
   };
 
-  const toggleMacroStatus = async (macro: Macro) => {
+  const handleToggleMacroStatus = async (macro: Macro) => {
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const result = await toggleMacroStatus(macro.name, macro.active);
 
-      if (!xapi) {
-        throw new Error("No device connection");
-      }
-
-      if (macro.active) {
-        await xapi.command("Macros Macro Deactivate", { Name: macro.name });
-      } else {
-        await xapi.command("Macros Macro Activate", { Name: macro.name });
+      if (!result.success) {
+        throw new Error(result.error || "Failed to toggle macro status");
       }
 
       fetchMacros();
     } catch (error) {
       console.error("Error toggling macro status:", error);
-      setError("Failed to toggle macro status");
+      setError(error instanceof Error ? error.message : "Failed to toggle macro status");
     }
   };
 
@@ -247,7 +193,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                       size="sm"
                       title={macro.active ? "Stop macro" : "Start macro"}
                       variant="light"
-                      onPress={() => toggleMacroStatus(macro)}
+                      onPress={() => handleToggleMacroStatus(macro)}
                     >
                       <Icon
                         icon={macro.active ? "solar:pause-bold" : "solar:play-bold"}
