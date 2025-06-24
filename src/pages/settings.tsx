@@ -1,13 +1,10 @@
-import { Card, CardBody, CardHeader, Switch, Divider } from "@heroui/react";
+import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import SidebarLayout from "@/layouts/sidebar-layout";
-import { useDeviceStore } from "@/stores/device-store";
 import { ThemeSwitch } from "@/components/common/theme-switch";
 
 export default function SettingsPage() {
-  const { drawerMode, setDrawerMode } = useDeviceStore();
-
   return (
     <SidebarLayout title="Settings">
       <div className="p-8">
@@ -23,49 +20,6 @@ export default function SettingsPage() {
               </div>
             </CardHeader>
             <CardBody className="space-y-4">
-              {/* Drawer Mode Setting */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">Device Details Display Mode</h3>
-                  <p className="text-xs text-default-500 mt-1">
-                    Choose how device details appear when you click on a device action
-                  </p>
-                  <div className="flex gap-4 mt-2">
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        className="text-default-400"
-                        icon="heroicons:arrows-pointing-in"
-                        width={16}
-                      />
-                      <span className="text-xs text-default-500">
-                        <strong>Overlay:</strong> Details slide over the table (focused view)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        className="text-default-400"
-                        icon="heroicons:arrows-pointing-out"
-                        width={16}
-                      />
-                      <span className="text-xs text-default-500">
-                        <strong>Push:</strong> Table shifts left to show details side-by-side
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-default-600">Overlay</span>
-                  <Switch
-                    isSelected={drawerMode === "push"}
-                    size="sm"
-                    onValueChange={(value) => setDrawerMode(value ? "push" : "overlay")}
-                  />
-                  <span className="text-sm text-default-600">Push</span>
-                </div>
-              </div>
-
-              <Divider />
-
               {/* Theme Setting */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">

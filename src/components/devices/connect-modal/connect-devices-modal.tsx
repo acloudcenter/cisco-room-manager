@@ -93,7 +93,13 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
             onSelectionChange={(key) => setActiveTab(key as string)}
           >
             <Tab key="single" title="Single Device">
-              <div className="space-y-6 mt-6">
+              <form
+                className="space-y-6 mt-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleConnect();
+                }}
+              >
                 {connectionError && (
                   <div className="p-3 rounded-lg bg-danger-50 border border-danger-200">
                     <div className="flex items-start gap-3">
@@ -170,7 +176,7 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
                     onValueChange={(value) => handleInputChange("password", value)}
                   />
                 </div>
-              </div>
+              </form>
             </Tab>
 
             <Tab key="multiple" title="Multiple Devices">

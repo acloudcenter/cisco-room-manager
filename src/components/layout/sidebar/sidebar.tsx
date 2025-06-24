@@ -114,7 +114,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                     iconClassName,
                   )}
                   icon={item.icon}
-                  width={24}
+                  width={18}
                 />
               ) : (
                 (item.startContent ?? null)
@@ -132,7 +132,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                         iconClassName,
                       )}
                       icon={item.icon}
-                      width={24}
+                      width={18}
                     />
                   ) : (
                     (item.startContent ?? null)
@@ -159,9 +159,9 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                             iconClassName,
                           )}
                           icon={item.icon}
-                          width={24}
+                          width={18}
                         />
-                        <span className="text-small font-medium text-default-500 group-data-[selected=true]:text-foreground">
+                        <span className="text-xs font-medium text-default-500 group-data-[selected=true]:text-foreground">
                           {item.title}
                         </span>
                       </div>
@@ -216,7 +216,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                     iconClassName,
                   )}
                   icon={item.icon}
-                  width={24}
+                  width={18}
                 />
               ) : (
                 (item.startContent ?? null)
@@ -235,7 +235,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                         iconClassName,
                       )}
                       icon={item.icon}
-                      width={24}
+                      width={18}
                     />
                   ) : (
                     (item.startContent ?? null)
@@ -269,7 +269,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
             itemClasses?.base,
           ),
           title: cn(
-            "text-small font-medium text-default-500 group-data-[selected=true]:text-foreground",
+            "text-xs font-medium text-default-500 group-data-[selected=true]:text-foreground",
             itemClasses?.title,
           ),
         }}

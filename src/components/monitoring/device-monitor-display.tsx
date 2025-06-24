@@ -258,7 +258,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">Device Name</p>
               <p className="font-medium">{monitorData.systemInfo?.name || "Unknown"}</p>
@@ -300,7 +300,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">Status</p>
               <Chip
@@ -330,7 +330,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">Registration Status</p>
               <Chip
@@ -377,7 +377,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
                 value={monitorData.audioStatus?.volume || 0}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-default-500">Microphones</p>
                 <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">Input Connectors</p>
               <p className="font-medium">
@@ -439,7 +439,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">Status</p>
               <Chip
@@ -471,7 +471,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
           </div>
         </CardHeader>
         <CardBody className="pt-0 space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-default-500">State</p>
               <Chip
@@ -506,7 +506,7 @@ export default function DeviceMonitorDisplay({ device }: DeviceMonitorDisplayPro
             </div>
           </CardHeader>
           <CardBody className="pt-0 space-y-3">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-default-500">CPU Usage</p>
                 <div className="flex items-center gap-2">

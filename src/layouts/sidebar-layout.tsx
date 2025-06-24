@@ -59,7 +59,7 @@ export default function SidebarLayout({
   };
 
   const content = (
-    <div className="relative flex h-full w-72 flex-1 flex-col backdrop-blur-xl bg-gradient-to-br from-background/90 via-default-50/90 to-primary-50/90 p-6 border-r border-divider">
+    <div className="relative flex h-full w-60 flex-1 flex-col backdrop-blur-xl bg-gradient-to-br from-background/90 via-default-50/90 to-primary-50/90 p-4 border-r border-divider">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-pulse" />
@@ -71,8 +71,8 @@ export default function SidebarLayout({
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-2 px-2">
-          <img alt="Logo" className="w-6 h-6" src="/images/logo.svg" />
-          <h1 className="text-xl font-light text-foreground">Room Manager</h1>
+          <img alt="Logo" className="w-5 h-5" src="/images/logo.svg" />
+          <h1 className="text-base font-light text-foreground">Room Manager</h1>
         </div>
         <p className="text-xs text-default-500 mt-1 px-2">An open source tool for Cisco Devices</p>
 
@@ -102,7 +102,7 @@ export default function SidebarLayout({
             fullWidth
             className="justify-start text-default-600 data-[hover=true]:bg-default-100/40"
             startContent={
-              <Icon className="text-default-500" icon="solar:question-circle-linear" width={20} />
+              <Icon className="text-default-500" icon="solar:question-circle-linear" width={16} />
             }
             variant="light"
           >
@@ -113,7 +113,7 @@ export default function SidebarLayout({
             as="a"
             className="justify-start text-default-600 data-[hover=true]:bg-default-100/40"
             href="https://github.com/joshestrada"
-            startContent={<Icon className="text-default-500" icon="mdi:github" width={20} />}
+            startContent={<Icon className="text-default-500" icon="mdi:github" width={16} />}
             target="_blank"
             variant="light"
           >
@@ -135,7 +135,7 @@ export default function SidebarLayout({
       </SidebarDrawer>
 
       {/* Main Content Area */}
-      <div className="flex w-full flex-col sm:max-w-[calc(100%_-_288px)]">
+      <div className="flex w-full flex-col sm:max-w-[calc(100%_-_240px)]">
         {/* Header */}
         <header className="backdrop-blur-xl bg-background/30 border-b border-divider px-8 py-4">
           <div className="flex items-center justify-between">

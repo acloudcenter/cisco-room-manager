@@ -8,46 +8,29 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Input,
   Button,
   DropdownTrigger,
   Dropdown,
   DropdownMenu,
   DropdownItem,
   Chip,
-  Pagination,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
   useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Divider,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-import {
-  capitalize,
-  columns,
-  statusOptions,
-  statusColorMap,
-  INITIAL_VISIBLE_COLUMNS,
-} from "./device-table-utils";
-import { SearchIcon, ChevronDownIcon, VerticalDotsIcon } from "./device-table-icons";
+import { columns, statusColorMap, INITIAL_VISIBLE_COLUMNS } from "./device-table-utils";
+import { VerticalDotsIcon } from "./device-table-icons";
+import { DeviceDrawer } from "./device-drawer";
+import { DeviceTableTopContent } from "./device-table-top-content";
+import { DeviceTableBottomContent } from "./device-table-bottom-content";
 
 import { useDeviceStore, ConnectedDevice } from "@/stores/device-store";
-import {
-  ProvisioningForm,
-  CurrentConfigDisplay,
-  ProvisioningFormData,
-} from "@/components/provisioning";
-import { DeviceMonitorDisplay } from "@/components/monitoring";
-import { BookingsDisplay } from "@/components/bookings";
-import { ConfigurationDisplay } from "@/components/configuration";
+import { ProvisioningFormData } from "@/components/provisioning";
 import { applyTmsConfiguration, applyWebexConfiguration, clearToOffMode } from "@/lib/provisioning";
 
 // Empty state component
@@ -90,7 +73,7 @@ interface DeviceTableRowData {
 }
 
 export default function DeviceTable() {
-  const { devices, disconnectDevice, drawerMode } = useDeviceStore();
+  const { devices, disconnectDevice } = useDeviceStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onClose: onConfirmClose } = useDisclosure();
 
@@ -123,8 +106,6 @@ export default function DeviceTable() {
 
     return (selectedKeys as Set<React.Key>).size;
   }, [selectedKeys, displayDevices.length]);
-
-  const hasSelection = selectedCount > 0;
 
   // Simple firmware version formatter - removes git hash
   const formatFirmware = (version: string) => {
@@ -170,7 +151,7 @@ export default function DeviceTable() {
           device.type.toLowerCase().includes(filterValue.toLowerCase()),
       );
     }
-    if (statusFilter !== "all" && Array.from(statusFilter).length !== statusOptions.length) {
+    if (statusFilter !== "all") {
       filteredDevices = filteredDevices.filter((device) =>
         Array.from(statusFilter).includes(device.status),
       );
@@ -264,54 +245,9 @@ export default function DeviceTable() {
     setIsProvisioningEditMode(true);
   };
 
-  // Render drawer content based on action
-  const renderDrawerContent = () => {
-    if (drawerAction === "provision" && selectedDevice) {
-      return isProvisioningEditMode ? (
-        <ProvisioningForm
-          device={selectedDevice}
-          onCancel={handleProvisioningCancel}
-          onSubmit={handleProvisioningSubmit}
-        />
-      ) : (
-        <CurrentConfigDisplay device={selectedDevice} onEdit={handleProvisioningEdit} />
-      );
-    } else if (drawerAction === "monitor" && selectedDevice) {
-      return <DeviceMonitorDisplay device={selectedDevice} />;
-    } else if (drawerAction === "bookings" && selectedDevice) {
-      return <BookingsDisplay device={selectedDevice} />;
-    } else if (drawerAction === "configure" && selectedDevice) {
-      return <ConfigurationDisplay device={selectedDevice} />;
-    } else {
-      return (
-        <div className="flex flex-col gap-4">
-          <div className="p-4 bg-default-100 rounded-lg">
-            <p className="text-center text-default-600">
-              {drawerAction.startsWith("bulk-") ? (
-                <>
-                  Bulk {capitalize(drawerAction.replace("bulk-", ""))} functionality will be
-                  implemented here.
-                </>
-              ) : (
-                <>{capitalize(drawerAction)} functionality will be implemented here.</>
-              )}
-            </p>
-            <div className="mt-4 flex justify-center">
-              <Icon
-                className="text-default-400"
-                height={48}
-                icon={
-                  drawerAction.startsWith("bulk-")
-                    ? "heroicons:squares-2x2"
-                    : "heroicons:wrench-screwdriver"
-                }
-                width={48}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
+  const handleActionChange = (action: string) => {
+    setDrawerAction(action);
+    setIsProvisioningEditMode(false);
   };
 
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
@@ -429,103 +365,20 @@ export default function DeviceTable() {
 
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between gap-3 items-end">
-          <Input
-            isClearable
-            className="w-full sm:max-w-[44%]"
-            placeholder="Search devices..."
-            startContent={<SearchIcon />}
-            value={filterValue}
-            onClear={() => onClear()}
-            onValueChange={onSearchChange}
-          />
-          <div className="flex gap-3 items-center">
-            <Dropdown isDisabled={selectedCount === 0}>
-              <DropdownTrigger>
-                <Button
-                  color={selectedCount > 0 ? "primary" : "default"}
-                  endContent={<ChevronDownIcon className="text-small" />}
-                  isDisabled={selectedCount === 0}
-                  variant={selectedCount > 0 ? "solid" : "flat"}
-                >
-                  Actions {selectedCount > 0 ? `(${selectedCount})` : ""}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Bulk Actions">
-                <DropdownItem key="bulk-monitor" onPress={() => handleBulkAction("monitor")}>
-                  Monitor Selected
-                </DropdownItem>
-                <DropdownItem key="bulk-configure" onPress={() => handleBulkAction("configure")}>
-                  Configure Selected
-                </DropdownItem>
-                <DropdownItem key="bulk-provision" onPress={() => handleBulkAction("provision")}>
-                  Provision Selected
-                </DropdownItem>
-                <DropdownItem key="bulk-disconnect" onPress={() => handleBulkAction("disconnect")}>
-                  Disconnect Selected
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-            <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                  Status
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label="Status Filter"
-                closeOnSelect={false}
-                selectedKeys={statusFilter}
-                selectionMode="multiple"
-                onSelectionChange={setStatusFilter}
-              >
-                {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {capitalize(status.name)}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-            <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                  Columns
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label="Table Columns"
-                closeOnSelect={false}
-                selectedKeys={visibleColumns}
-                selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
-              >
-                {columns.map((column) => (
-                  <DropdownItem key={column.uid} className="capitalize">
-                    {capitalize(column.name)}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {displayDevices.length} devices</span>
-          <label className="flex items-center text-default-400 text-small">
-            Rows per page:
-            <select
-              className="bg-transparent outline-none text-default-400 text-small"
-              onChange={onRowsPerPageChange}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-            </select>
-          </label>
-        </div>
-      </div>
+      <DeviceTableTopContent
+        deviceCount={displayDevices.length}
+        filterValue={filterValue}
+        rowsPerPage={rowsPerPage}
+        selectedCount={selectedCount}
+        statusFilter={statusFilter}
+        visibleColumns={visibleColumns}
+        onBulkAction={handleBulkAction}
+        onFilterChange={onSearchChange}
+        onFilterClear={onClear}
+        onRowsPerPageChange={onRowsPerPageChange}
+        onStatusFilterChange={setStatusFilter}
+        onVisibleColumnsChange={setVisibleColumns}
+      />
     );
   }, [
     filterValue,
@@ -534,48 +387,29 @@ export default function DeviceTable() {
     onSearchChange,
     onRowsPerPageChange,
     displayDevices.length,
-    hasSearchFilter,
     selectedCount,
-    hasSelection,
     handleBulkAction,
+    rowsPerPage,
   ]);
 
   const bottomContent = React.useMemo(() => {
     return (
-      <div className="py-2 px-2 flex justify-between items-center">
-        <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === "all"
-            ? "All items selected"
-            : `${selectedCount} of ${filteredItems.length} selected`}
-        </span>
-        <Pagination
-          isCompact
-          showControls
-          showShadow
-          color="primary"
-          page={page}
-          total={pages}
-          onChange={setPage}
-        />
-        <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            Previous
-          </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Next
-          </Button>
-        </div>
-      </div>
+      <DeviceTableBottomContent
+        filteredCount={filteredItems.length}
+        page={page}
+        pages={pages}
+        selectedCount={selectedCount}
+        selectedKeys={selectedKeys}
+        onNextPage={onNextPage}
+        onPageChange={setPage}
+        onPreviousPage={onPreviousPage}
+      />
     );
-  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
+  }, [selectedKeys, selectedCount, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
 
   return (
-    <div
-      className={`flex gap-4 ${isOpen && drawerMode === "push" ? "transition-all duration-300" : ""}`}
-    >
-      <div
-        className={`flex-1 ${isOpen && drawerMode === "push" ? "max-w-[calc(100%-25rem)]" : ""} transition-all duration-300`}
-      >
+    <div className="w-full">
+      <div className="w-full">
         <Table
           isHeaderSticky
           aria-label="Device management table"
@@ -613,186 +447,20 @@ export default function DeviceTable() {
         </Table>
       </div>
 
-      {/* Drawer - either overlay or push mode */}
-      {drawerMode === "push" && isOpen ? (
-        <div className="w-96 border-l border-divider bg-background p-4 overflow-y-auto">
-          <div className="flex flex-col gap-4">
-            {/* Header with close button */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Icon
-                  className="text-primary"
-                  height={24}
-                  icon="heroicons:cog-6-tooth"
-                  width={24}
-                />
-                <h2 className="text-xl font-semibold">
-                  {capitalize(drawerAction.replace("bulk-", ""))} Device
-                  {drawerAction.startsWith("bulk-") ? "s" : ""}
-                </h2>
-              </div>
-              <Button isIconOnly size="sm" variant="light" onPress={onClose}>
-                <Icon icon="heroicons:x-mark" width={20} />
-              </Button>
-            </div>
-
-            {/* Device info */}
-            {selectedDevice && (
-              <p className="text-small text-default-500">
-                {drawerAction.startsWith("bulk-")
-                  ? `${selectedCount} devices selected`
-                  : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
-              </p>
-            )}
-
-            {/* Action navigation */}
-            {selectedDevice && !drawerAction.startsWith("bulk-") && (
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  color={drawerAction === "monitor" ? "primary" : "default"}
-                  size="sm"
-                  startContent={<Icon icon="solar:monitor-outline" width={16} />}
-                  variant={drawerAction === "monitor" ? "solid" : "flat"}
-                  onPress={() => {
-                    setDrawerAction("monitor");
-                    setIsProvisioningEditMode(false);
-                  }}
-                >
-                  Monitor
-                </Button>
-                <Button
-                  color={drawerAction === "bookings" ? "primary" : "default"}
-                  size="sm"
-                  startContent={<Icon icon="solar:calendar-outline" width={16} />}
-                  variant={drawerAction === "bookings" ? "solid" : "flat"}
-                  onPress={() => {
-                    setDrawerAction("bookings");
-                    setIsProvisioningEditMode(false);
-                  }}
-                >
-                  Bookings
-                </Button>
-                <Button
-                  color={drawerAction === "configure" ? "primary" : "default"}
-                  size="sm"
-                  startContent={<Icon icon="solar:settings-outline" width={16} />}
-                  variant={drawerAction === "configure" ? "solid" : "flat"}
-                  onPress={() => {
-                    setDrawerAction("configure");
-                    setIsProvisioningEditMode(false);
-                  }}
-                >
-                  Configure
-                </Button>
-                <Button
-                  color={drawerAction === "provision" ? "primary" : "default"}
-                  size="sm"
-                  startContent={<Icon icon="solar:shield-check-outline" width={16} />}
-                  variant={drawerAction === "provision" ? "solid" : "flat"}
-                  onPress={() => {
-                    setDrawerAction("provision");
-                    setIsProvisioningEditMode(false);
-                  }}
-                >
-                  Provision
-                </Button>
-              </div>
-            )}
-
-            <Divider />
-
-            {/* Content */}
-            <div className="flex-1">{renderDrawerContent()}</div>
-          </div>
-        </div>
-      ) : (
-        <Drawer isOpen={isOpen} placement="right" size="md" onClose={onClose}>
-          <DrawerContent>
-            <DrawerHeader className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <Icon
-                  className="text-primary"
-                  height={24}
-                  icon="heroicons:cog-6-tooth"
-                  width={24}
-                />
-                <h2 className="text-xl font-semibold">
-                  {capitalize(drawerAction.replace("bulk-", ""))} Device
-                  {drawerAction.startsWith("bulk-") ? "s" : ""}
-                </h2>
-              </div>
-              {selectedDevice && (
-                <p className="text-small text-default-500">
-                  {drawerAction.startsWith("bulk-")
-                    ? `${selectedCount} devices selected`
-                    : `${selectedDevice.info.unitName} (${selectedDevice.credentials.host})`}
-                </p>
-              )}
-            </DrawerHeader>
-            <DrawerBody>
-              <div className="flex flex-col gap-4">
-                {/* Action navigation for overlay mode */}
-                {selectedDevice && !drawerAction.startsWith("bulk-") && (
-                  <>
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        color={drawerAction === "monitor" ? "primary" : "default"}
-                        size="sm"
-                        startContent={<Icon icon="solar:monitor-outline" width={16} />}
-                        variant={drawerAction === "monitor" ? "solid" : "flat"}
-                        onPress={() => {
-                          setDrawerAction("monitor");
-                          setIsProvisioningEditMode(false);
-                        }}
-                      >
-                        Monitor
-                      </Button>
-                      <Button
-                        color={drawerAction === "bookings" ? "primary" : "default"}
-                        size="sm"
-                        startContent={<Icon icon="solar:calendar-outline" width={16} />}
-                        variant={drawerAction === "bookings" ? "solid" : "flat"}
-                        onPress={() => {
-                          setDrawerAction("bookings");
-                          setIsProvisioningEditMode(false);
-                        }}
-                      >
-                        Bookings
-                      </Button>
-                      <Button
-                        color={drawerAction === "configure" ? "primary" : "default"}
-                        size="sm"
-                        startContent={<Icon icon="solar:settings-outline" width={16} />}
-                        variant={drawerAction === "configure" ? "solid" : "flat"}
-                        onPress={() => {
-                          setDrawerAction("configure");
-                          setIsProvisioningEditMode(false);
-                        }}
-                      >
-                        Configure
-                      </Button>
-                      <Button
-                        color={drawerAction === "provision" ? "primary" : "default"}
-                        size="sm"
-                        startContent={<Icon icon="solar:shield-check-outline" width={16} />}
-                        variant={drawerAction === "provision" ? "solid" : "flat"}
-                        onPress={() => {
-                          setDrawerAction("provision");
-                          setIsProvisioningEditMode(false);
-                        }}
-                      >
-                        Provision
-                      </Button>
-                    </div>
-                    <Divider />
-                  </>
-                )}
-                {renderDrawerContent()}
-              </div>
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
-      )}
+      {/* Drawer component */}
+      <DeviceDrawer
+        drawerAction={drawerAction}
+        drawerMode="overlay"
+        isOpen={isOpen}
+        isProvisioningEditMode={isProvisioningEditMode}
+        selectedCount={selectedCount}
+        selectedDevice={selectedDevice}
+        onActionChange={handleActionChange}
+        onClose={onClose}
+        onProvisioningCancel={handleProvisioningCancel}
+        onProvisioningEdit={handleProvisioningEdit}
+        onProvisioningSubmit={handleProvisioningSubmit}
+      />
 
       {/* Disconnect Confirmation Modal */}
       <Modal isOpen={isConfirmOpen} placement="center" size="sm" onClose={onConfirmClose}>
