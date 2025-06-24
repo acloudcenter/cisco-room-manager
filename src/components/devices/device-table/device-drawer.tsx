@@ -70,6 +70,9 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
     // Rendering center modal view
     return (
       <Modal
+        classNames={{
+          wrapper: "items-start pt-16",
+        }}
         hideCloseButton={true}
         isDismissable={true}
         isOpen={isOpen}
@@ -77,7 +80,7 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
         size="5xl"
         onClose={onClose}
       >
-        <ModalContent className="min-h-[600px] max-h-[90vh]">
+        <ModalContent className="h-[85vh] max-h-[800px] min-h-[600px]">
           <ModalHeader className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-3">
               <h2 className="text-base font-semibold">
@@ -98,8 +101,8 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
               </Button>
             </div>
           </ModalHeader>
-          <ModalBody className="py-0 px-6">
-            <div className="flex flex-col gap-3">
+          <ModalBody className="py-0 px-6 overflow-y-auto">
+            <div className="flex flex-col gap-3 h-full">
               <DeviceDrawerNavigation
                 currentAction={drawerAction}
                 isBulkAction={isBulkAction}
