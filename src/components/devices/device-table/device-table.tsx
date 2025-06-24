@@ -9,10 +9,6 @@ import {
   TableRow,
   TableCell,
   Button,
-  DropdownTrigger,
-  Dropdown,
-  DropdownMenu,
-  DropdownItem,
   Chip,
   useDisclosure,
   Modal,
@@ -24,7 +20,6 @@ import {
 import { Icon } from "@iconify/react";
 
 import { columns, statusColorMap, INITIAL_VISIBLE_COLUMNS } from "./device-table-utils";
-import { VerticalDotsIcon } from "./device-table-icons";
 import { DeviceDrawer } from "./device-drawer";
 import { DeviceTableTopContent } from "./device-table-top-content";
 import { DeviceTableBottomContent } from "./device-table-bottom-content";
@@ -294,37 +289,16 @@ export default function DeviceTable() {
         );
       case "actions":
         return (
-          <div className="relative flex justify-end items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <VerticalDotsIcon className="text-default-300" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem key="status" onPress={() => handleAction(device.device, "status")}>
-                  Status
-                </DropdownItem>
-                <DropdownItem
-                  key="configure"
-                  onPress={() => handleAction(device.device, "configure")}
-                >
-                  Configure
-                </DropdownItem>
-                <DropdownItem
-                  key="provision"
-                  onPress={() => handleAction(device.device, "provision")}
-                >
-                  Provision
-                </DropdownItem>
-                <DropdownItem
-                  key="disconnect"
-                  onPress={() => handleAction(device.device, "disconnect")}
-                >
-                  Disconnect
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+          <div className="relative flex justify-center items-center">
+            <Button
+              isIconOnly
+              color="primary"
+              size="sm"
+              variant="flat"
+              onPress={() => handleAction(device.device, "status")}
+            >
+              <Icon icon="solar:tuning-square-2-outline" width={18} />
+            </Button>
           </div>
         );
       default:

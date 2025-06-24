@@ -14,7 +14,7 @@ export const sidebarItems: SidebarItem[] = [
       {
         key: "tools",
         href: "/tools",
-        icon: "solar:tools-outline",
+        icon: "solar:widget-2-outline",
         title: "Tools",
       },
     ],
