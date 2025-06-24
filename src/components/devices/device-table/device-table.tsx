@@ -46,6 +46,7 @@ import {
   ProvisioningFormData,
 } from "@/components/provisioning";
 import { DeviceMonitorDisplay } from "@/components/monitoring";
+import { BookingsDisplay } from "@/components/bookings";
 import { applyTmsConfiguration, applyWebexConfiguration, clearToOffMode } from "@/lib/provisioning";
 
 // Empty state component
@@ -276,6 +277,8 @@ export default function DeviceTable() {
       );
     } else if (drawerAction === "monitor" && selectedDevice) {
       return <DeviceMonitorDisplay device={selectedDevice} />;
+    } else if (drawerAction === "bookings" && selectedDevice) {
+      return <BookingsDisplay device={selectedDevice} />;
     } else {
       return (
         <div className="flex flex-col gap-4">
@@ -641,7 +644,7 @@ export default function DeviceTable() {
 
             {/* Action navigation */}
             {selectedDevice && !drawerAction.startsWith("bulk-") && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   color={drawerAction === "monitor" ? "primary" : "default"}
                   size="sm"
@@ -653,6 +656,18 @@ export default function DeviceTable() {
                   }}
                 >
                   Monitor
+                </Button>
+                <Button
+                  color={drawerAction === "bookings" ? "primary" : "default"}
+                  size="sm"
+                  startContent={<Icon icon="solar:calendar-outline" width={16} />}
+                  variant={drawerAction === "bookings" ? "solid" : "flat"}
+                  onPress={() => {
+                    setDrawerAction("bookings");
+                    setIsProvisioningEditMode(false);
+                  }}
+                >
+                  Bookings
                 </Button>
                 <Button
                   color={drawerAction === "configure" ? "primary" : "default"}
@@ -716,7 +731,7 @@ export default function DeviceTable() {
                 {/* Action navigation for overlay mode */}
                 {selectedDevice && !drawerAction.startsWith("bulk-") && (
                   <>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button
                         color={drawerAction === "monitor" ? "primary" : "default"}
                         size="sm"
@@ -728,6 +743,18 @@ export default function DeviceTable() {
                         }}
                       >
                         Monitor
+                      </Button>
+                      <Button
+                        color={drawerAction === "bookings" ? "primary" : "default"}
+                        size="sm"
+                        startContent={<Icon icon="solar:calendar-outline" width={16} />}
+                        variant={drawerAction === "bookings" ? "solid" : "flat"}
+                        onPress={() => {
+                          setDrawerAction("bookings");
+                          setIsProvisioningEditMode(false);
+                        }}
+                      >
+                        Bookings
                       </Button>
                       <Button
                         color={drawerAction === "configure" ? "primary" : "default"}
