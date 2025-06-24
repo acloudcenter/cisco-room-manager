@@ -47,6 +47,7 @@ import {
 } from "@/components/provisioning";
 import { DeviceMonitorDisplay } from "@/components/monitoring";
 import { BookingsDisplay } from "@/components/bookings";
+import { ConfigurationDisplay } from "@/components/configuration";
 import { applyTmsConfiguration, applyWebexConfiguration, clearToOffMode } from "@/lib/provisioning";
 
 // Empty state component
@@ -279,6 +280,8 @@ export default function DeviceTable() {
       return <DeviceMonitorDisplay device={selectedDevice} />;
     } else if (drawerAction === "bookings" && selectedDevice) {
       return <BookingsDisplay device={selectedDevice} />;
+    } else if (drawerAction === "configure" && selectedDevice) {
+      return <ConfigurationDisplay device={selectedDevice} />;
     } else {
       return (
         <div className="flex flex-col gap-4">
