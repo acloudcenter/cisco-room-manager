@@ -12,7 +12,6 @@ import {
   ModalBody,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
-// import { useNavigate } from "react-router-dom"; // Will use when full page view is implemented
 
 import { capitalize } from "./device-table-utils";
 import { DeviceDrawerNavigation } from "./device-drawer-navigation";
@@ -48,22 +47,9 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
   onProvisioningCancel,
   onProvisioningSubmit,
 }) => {
-  // const navigate = useNavigate(); // Will use when full page view is implemented
   const { viewMode, setViewMode } = useDeviceStore();
   const isBulkAction = drawerAction.startsWith("bulk-");
   const actionLabel = capitalize(drawerAction.replace("bulk-", ""));
-
-  // Debug logging removed for production
-
-  // Handle full page navigation
-  React.useEffect(() => {
-    if (viewMode === "full" && isOpen && selectedDevice) {
-      // For now, just show a message since we don't have the full page route yet
-      alert("Full page view coming soon! This will open device details in a dedicated page.");
-      // Reset to side view
-      setViewMode("side");
-    }
-  }, [viewMode, isOpen, selectedDevice, drawerAction, setViewMode]);
 
   // Center peek - modal view
   if (viewMode === "center") {

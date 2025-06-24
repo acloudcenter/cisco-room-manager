@@ -23,7 +23,7 @@ interface DeviceState {
   isConnecting: boolean;
   connectionError: string | null;
   drawerMode: "push" | "overlay";
-  viewMode: "side" | "center" | "full";
+  viewMode: "side" | "center";
 
   // Provisioning State
   isProvisioning: boolean;
@@ -38,7 +38,7 @@ interface DeviceState {
   setProvisioningState: (isProvisioning: boolean, progress?: string) => void;
   setProvisioningError: (error: string | null) => void;
   setDrawerMode: (mode: "push" | "overlay") => void;
-  setViewMode: (mode: "side" | "center" | "full") => void;
+  setViewMode: (mode: "side" | "center") => void;
 }
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
@@ -130,7 +130,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     set({ drawerMode: mode });
   },
 
-  setViewMode: (mode: "side" | "center" | "full") => {
+  setViewMode: (mode: "side" | "center") => {
     set({ viewMode: mode });
   },
 }));

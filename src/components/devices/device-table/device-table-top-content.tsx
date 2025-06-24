@@ -67,8 +67,8 @@ export const DeviceTableTopContent: React.FC<DeviceTableTopContentProps> = ({
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Bulk Actions">
-              <DropdownItem key="bulk-monitor" onPress={() => onBulkAction("monitor")}>
-                Monitor Selected
+              <DropdownItem key="bulk-status" onPress={() => onBulkAction("status")}>
+                Status Selected
               </DropdownItem>
               <DropdownItem key="bulk-configure" onPress={() => onBulkAction("configure")}>
                 Configure Selected

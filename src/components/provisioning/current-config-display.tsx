@@ -139,7 +139,7 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Icon className="text-primary" icon="solar:monitor-outline" width={24} />
+          <Icon className="text-primary" icon="solar:settings-outline" width={24} />
           <div>
             <h3 className="text-lg font-semibold">Current Device Configuration</h3>
             <p className="text-sm text-default-500">{device?.info?.unitName || "Unknown Device"}</p>

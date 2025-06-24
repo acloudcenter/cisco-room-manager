@@ -11,6 +11,12 @@ export const sidebarItems: SidebarItem[] = [
         icon: "solar:monitor-smartphone-line-duotone",
         title: "Devices",
       },
+      {
+        key: "tools",
+        href: "/tools",
+        icon: "solar:tools-outline",
+        title: "Tools",
+      },
     ],
   },
   {

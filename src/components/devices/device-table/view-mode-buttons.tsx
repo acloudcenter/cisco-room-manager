@@ -3,8 +3,8 @@ import { ButtonGroup, Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 interface ViewModeButtonsProps {
-  currentMode: "side" | "center" | "full";
-  onModeChange: (mode: "side" | "center" | "full") => void;
+  currentMode: "side" | "center";
+  onModeChange: (mode: "side" | "center") => void;
 }
 
 export const ViewModeButtons: React.FC<ViewModeButtonsProps> = ({ currentMode, onModeChange }) => {
@@ -25,14 +25,6 @@ export const ViewModeButtons: React.FC<ViewModeButtonsProps> = ({ currentMode, o
         onPress={() => onModeChange("center")}
       >
         <Icon icon="solar:align-horizontal-center-linear" width={16} />
-      </Button>
-      <Button
-        isIconOnly
-        color={currentMode === "full" ? "primary" : "default"}
-        title="Full page"
-        onPress={() => onModeChange("full")}
-      >
-        <Icon icon="solar:full-screen-outline" width={16} />
       </Button>
     </ButtonGroup>
   );

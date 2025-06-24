@@ -16,7 +16,7 @@ export const DeviceDrawerNavigation: React.FC<DeviceDrawerNavigationProps> = ({
   if (isBulkAction) return null;
 
   const actions = [
-    { key: "monitor", label: "Monitor", icon: "solar:monitor-outline" },
+    { key: "status", label: "Status", icon: "solar:chart-outline" },
     { key: "bookings", label: "Bookings", icon: "solar:calendar-outline" },
     { key: "configure", label: "Configure", icon: "solar:settings-outline" },
     { key: "provision", label: "Provision", icon: "solar:shield-check-outline" },

@@ -9,7 +9,7 @@ import {
   CurrentConfigDisplay,
   ProvisioningFormData,
 } from "@/components/provisioning";
-import { DeviceMonitorDisplay } from "@/components/monitoring";
+import { DeviceStatusDisplay } from "@/components/status";
 import { BookingsDisplay } from "@/components/bookings";
 import { ConfigurationDisplay } from "@/components/configuration";
 
@@ -52,8 +52,8 @@ export const DeviceDrawerContent: React.FC<DeviceDrawerContentProps> = ({
     );
   }
 
-  if (action === "monitor") {
-    return <DeviceMonitorDisplay device={device} />;
+  if (action === "status") {
+    return <DeviceStatusDisplay device={device} />;
   }
 
   if (action === "bookings") {

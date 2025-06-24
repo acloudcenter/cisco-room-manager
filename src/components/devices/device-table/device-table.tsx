@@ -39,7 +39,7 @@ const EmptyState = () => (
     <Icon className="text-default-300 mb-4" icon="solar:monitor-outline" width={64} />
     <h3 className="text-lg font-semibold text-default-600 mb-2">No Devices Connected</h3>
     <p className="text-default-400 text-center max-w-md mb-6">
-      Connect to a Cisco room device to monitor status, configure settings, and manage provisioning.
+      Connect to a Cisco room device to view status, configure settings, and manage provisioning.
       <br />
       <span className="text-sm">
         To get started, click the <strong>Add Device</strong> button in the top right.
@@ -302,8 +302,8 @@ export default function DeviceTable() {
                 </Button>
               </DropdownTrigger>
               <DropdownMenu>
-                <DropdownItem key="monitor" onPress={() => handleAction(device.device, "monitor")}>
-                  Monitor
+                <DropdownItem key="status" onPress={() => handleAction(device.device, "status")}>
+                  Status
                 </DropdownItem>
                 <DropdownItem
                   key="configure"
