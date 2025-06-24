@@ -18,10 +18,10 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Icon className="text-primary" icon="solar:settings-bold-duotone" width={24} />
+        <Icon className="text-primary" icon="solar:settings-bold-duotone" width={16} />
         <div>
-          <h3 className="text-lg font-semibold">Device Configuration</h3>
-          <p className="text-sm text-default-500">
+          <h3 className="text-sm font-semibold">Device Configuration</h3>
+          <p className="text-xs text-default-500">
             Manage macros and extensions for {device.info.unitName}
           </p>
         </div>
@@ -41,8 +41,8 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
           key="macros"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:code-file-bold-duotone" width="20" />
-              <span>Macros</span>
+              <Icon icon="solar:code-file-bold-duotone" width="16" />
+              <span className="text-xs">Macros</span>
             </div>
           }
         >
@@ -52,8 +52,8 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
           key="extensions"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:widget-2-bold-duotone" width="20" />
-              <span>Extensions</span>
+              <Icon icon="solar:widget-2-bold-duotone" width="16" />
+              <span className="text-xs">Extensions</span>
             </div>
           }
         >

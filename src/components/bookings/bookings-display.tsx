@@ -90,10 +90,10 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
   if (isLoading) {
     return (
       <Card className="bg-default-50">
-        <CardBody className="flex flex-row items-center gap-4 p-6">
-          <CircularProgress size="md" />
+        <CardBody className="flex flex-row items-center gap-3 p-4">
+          <CircularProgress size="sm" />
           <div>
-            <p className="text-sm font-medium">Loading Bookings...</p>
+            <p className="text-xs font-medium">Loading Bookings...</p>
             <p className="text-xs text-default-500">Fetching today&apos;s schedule...</p>
           </div>
         </CardBody>
@@ -104,15 +104,15 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
   if (error) {
     return (
       <Card className="bg-danger-50 border-danger-200">
-        <CardBody className="p-4">
+        <CardBody className="p-3">
           <div className="flex items-start gap-3">
             <Icon
               className="text-danger-500 mt-0.5"
               icon="solar:danger-circle-outline"
-              width={20}
+              width={16}
             />
             <div className="flex flex-col">
-              <p className="text-sm font-medium text-danger-700">Failed to Load Bookings</p>
+              <p className="text-xs font-medium text-danger-700">Failed to Load Bookings</p>
               <p className="text-xs text-danger-600 mt-1">{error}</p>
               <Button
                 className="mt-2 w-fit"
@@ -135,10 +135,10 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Icon className="text-primary" icon="solar:calendar-outline" width={24} />
+          <Icon className="text-primary" icon="solar:calendar-outline" width={16} />
           <div>
-            <h3 className="text-lg font-semibold">Today&apos;s Bookings</h3>
-            <p className="text-sm text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
+            <h3 className="text-sm font-semibold">Today&apos;s Bookings</h3>
+            <p className="text-xs text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
           </div>
         </div>
 
@@ -155,16 +155,16 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
       {/* Current Meeting Status */}
       {currentBooking && (
         <Card className="bg-primary-50 border-primary-200">
-          <CardBody className="p-4">
+          <CardBody className="p-3">
             <div className="flex items-start gap-3">
               <Icon
                 className="text-primary-500 mt-0.5"
                 icon="solar:video-conference-bold"
-                width={20}
+                width={16}
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-primary-700">Meeting in Progress</p>
-                <p className="text-sm font-semibold mt-1">
+                <p className="text-xs font-medium text-primary-700">Meeting in Progress</p>
+                <p className="text-xs font-semibold mt-1">
                   {currentBooking.privacy === "Private" ? "Private Meeting" : currentBooking.title}
                 </p>
                 <p className="text-xs text-primary-600">
@@ -179,15 +179,15 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
 
       {/* Bookings List */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-md font-medium">Schedule</h4>
+            <h4 className="text-xs font-medium">Schedule</h4>
             <Chip size="sm" variant="flat">
               {bookingsData?.bookings.length || 0} meetings
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="pt-0">
+        <CardBody className="pt-1 pb-3 px-3">
           {bookingsData?.bookings && bookingsData.bookings.length > 0 ? (
             <div className="space-y-3">
               {bookingsData.bookings.map((booking, index) => {
@@ -203,7 +203,7 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">
+                            <p className="text-xs font-medium">
                               {booking.privacy === "Private" ? (
                                 <span className="text-default-500">Private Meeting</span>
                               ) : (
@@ -257,9 +257,9 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
               <Icon
                 className="text-default-300 mb-3"
                 icon="solar:calendar-minimalistic-outline"
-                width={48}
+                width={32}
               />
-              <p className="text-sm text-default-500">No bookings scheduled for today</p>
+              <p className="text-xs text-default-500">No bookings scheduled for today</p>
               <p className="text-xs text-default-400 mt-1">The room is available</p>
             </div>
           )}

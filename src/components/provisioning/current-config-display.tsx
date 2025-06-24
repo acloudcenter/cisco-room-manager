@@ -53,10 +53,10 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
   if (isLoading) {
     return (
       <Card className="bg-default-50">
-        <CardBody className="flex flex-row items-center gap-4 p-6">
-          <CircularProgress size="md" />
+        <CardBody className="flex flex-row items-center gap-3 p-4">
+          <CircularProgress size="sm" />
           <div>
-            <p className="text-sm font-medium">Reading Configuration...</p>
+            <p className="text-xs font-medium">Reading Configuration...</p>
             <p className="text-xs text-default-500">
               {provisioningProgress || "Connecting to device..."}
             </p>
@@ -69,15 +69,15 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
   if (error) {
     return (
       <Card className="bg-danger-50 border-danger-200">
-        <CardBody className="p-4">
+        <CardBody className="p-3">
           <div className="flex items-start gap-3">
             <Icon
               className="text-danger-500 mt-0.5"
               icon="solar:danger-circle-outline"
-              width={20}
+              width={16}
             />
             <div className="flex flex-col">
-              <p className="text-sm font-medium text-danger-700">Failed to Read Configuration</p>
+              <p className="text-xs font-medium text-danger-700">Failed to Read Configuration</p>
               <p className="text-xs text-danger-600 mt-1">{error}</p>
               <Button
                 className="mt-2 w-fit"
@@ -139,10 +139,10 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Icon className="text-primary" icon="solar:settings-outline" width={24} />
+          <Icon className="text-primary" icon="solar:settings-outline" width={16} />
           <div>
-            <h3 className="text-lg font-semibold">Current Device Configuration</h3>
-            <p className="text-sm text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
+            <h3 className="text-sm font-semibold">Current Device Configuration</h3>
+            <p className="text-xs text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
           </div>
         </div>
 
@@ -161,21 +161,21 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
 
       {/* Configuration Display */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex items-center gap-2">
-            <h4 className="text-md font-medium">Provisioning Status</h4>
+            <h4 className="text-xs font-medium">Provisioning Status</h4>
             <Chip color={getModeColor(config?.mode || "")} size="sm" variant="flat">
               {config?.mode || "Unknown"}
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="pt-0 space-y-3">
+        <CardBody className="pt-1 pb-3 px-3 space-y-3">
           {/* Provisioning Status */}
           {status && (
             <>
               <div className="p-3 bg-default-100 rounded-lg">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-default-700">Status</p>
+                  <p className="text-xs font-medium text-default-700">Status</p>
                   <Chip color={getStatusColor(status.status)} size="sm" variant="flat">
                     {status.status}
                   </Chip>
@@ -186,7 +186,7 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
           )}
 
           {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
               <p className="text-default-500">Mode</p>
               <p className="font-medium">{config?.mode || "Not configured"}</p>
@@ -202,8 +202,8 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
             <>
               <Divider />
               <div className="space-y-3">
-                <p className="text-sm font-medium text-default-700">TMS Configuration</p>
-                <div className="grid grid-cols-1 gap-3 text-sm">
+                <p className="text-xs font-medium text-default-700">TMS Configuration</p>
+                <div className="grid grid-cols-1 gap-3 text-xs">
                   <div>
                     <p className="text-default-500">External Manager Address</p>
                     <p className="font-medium font-mono">
@@ -242,8 +242,8 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
             <>
               <Divider />
               <div className="space-y-3">
-                <p className="text-sm font-medium text-default-700">Webex Configuration</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <p className="text-xs font-medium text-default-700">Webex Configuration</p>
+                <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <p className="text-default-500">TLS Verify</p>
                     <p className="font-medium">{config?.tlsVerify || "On"}</p>
@@ -262,7 +262,7 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
             <>
               <Divider />
               <div className="p-3 bg-default-100 rounded-lg">
-                <p className="text-sm text-default-600">
+                <p className="text-xs text-default-600">
                   Provisioning is currently disabled. The device is not configured by any
                   provisioning system.
                 </p>
@@ -276,7 +276,7 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
             <Button
               color="primary"
               isDisabled={isProvisioning}
-              startContent={<Icon icon="solar:settings-outline" width={20} />}
+              startContent={<Icon icon="solar:settings-outline" width={16} />}
               onPress={onEdit}
             >
               Edit Configuration

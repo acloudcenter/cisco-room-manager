@@ -152,10 +152,10 @@ export default function ProvisioningForm({
   if (isLoadingConfig) {
     return (
       <Card className="bg-default-50">
-        <CardBody className="flex flex-row items-center gap-4 p-6">
-          <CircularProgress size="md" />
+        <CardBody className="flex flex-row items-center gap-3 p-4">
+          <CircularProgress size="sm" />
           <div>
-            <p className="text-sm font-medium">Loading Current Configuration...</p>
+            <p className="text-xs font-medium">Loading Current Configuration...</p>
             <p className="text-xs text-default-500">Reading device settings...</p>
           </div>
         </CardBody>
@@ -166,11 +166,11 @@ export default function ProvisioningForm({
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div className="flex items-center gap-3 p-4 bg-default-50 rounded-lg">
-        <Icon className="text-primary" icon="solar:settings-outline" width={24} />
+      <div className="flex items-center gap-2 p-3 bg-default-50 rounded-lg">
+        <Icon className="text-primary" icon="solar:settings-outline" width={16} />
         <div>
-          <h3 className="text-lg font-semibold">Provisioning Configuration</h3>
-          <p className="text-sm text-default-500">
+          <h3 className="text-sm font-semibold">Provisioning Configuration</h3>
+          <p className="text-xs text-default-500">
             Configure {device?.info?.unitName || "device"} provisioning settings
           </p>
         </div>
@@ -178,14 +178,15 @@ export default function ProvisioningForm({
 
       {/* Mode Selection */}
       <Card>
-        <CardHeader className="pb-3">
-          <h4 className="text-md font-semibold">Provisioning Mode</h4>
+        <CardHeader className="pb-1 pt-2 px-3">
+          <h4 className="text-xs font-medium">Provisioning Mode</h4>
         </CardHeader>
-        <CardBody className="pt-0">
+        <CardBody className="pt-1 pb-3 px-3">
           <Select
             label="Mode"
             placeholder="Select provisioning mode"
             selectedKeys={[formData.mode]}
+            size="sm"
             onSelectionChange={(keys) => {
               const mode = Array.from(keys)[0] as ProvisioningMode;
 
@@ -208,14 +209,14 @@ export default function ProvisioningForm({
 
       {/* Main Configuration Section */}
       <Card>
-        <CardHeader className="pb-3">
-          <h4 className="text-md font-semibold">Configuration</h4>
+        <CardHeader className="pb-1 pt-2 px-3">
+          <h4 className="text-xs font-medium">Configuration</h4>
         </CardHeader>
         <CardBody className="pt-0 space-y-4">
           {/* Connectivity - Only show for TMS mode */}
           {isTmsMode && (
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-default-700">Connectivity</span>
+              <span className="text-xs font-medium text-default-700">Connectivity</span>
               <div className="px-3 py-2 bg-default-100 border-2 border-default-200 rounded-md">
                 <span className="text-default-500">{formData.connectivity}</span>
               </div>
@@ -230,6 +231,7 @@ export default function ProvisioningForm({
                 description="Username for TMS authentication (optional)"
                 label="LoginName"
                 placeholder="tms-user"
+                size="sm"
                 value={formData.credentials.loginName}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
@@ -256,6 +258,7 @@ export default function ProvisioningForm({
                 }
                 label="Password"
                 placeholder="Enter password"
+                size="sm"
                 type={showPassword ? "text" : "password"}
                 value={formData.credentials.password}
                 onValueChange={(value) =>
@@ -271,7 +274,7 @@ export default function ProvisioningForm({
           {/* Security Settings */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-sm font-medium">TlsVerify</span>
+              <span className="text-xs font-medium">TlsVerify</span>
               <span className="text-xs text-default-400">
                 Verify TLS certificates during connection
               </span>
@@ -289,7 +292,7 @@ export default function ProvisioningForm({
 
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-sm font-medium">WebexEdge</span>
+              <span className="text-xs font-medium">WebexEdge</span>
               <span className="text-xs text-default-400">Enable Webex Edge connectivity</span>
             </div>
             <Switch
@@ -308,8 +311,8 @@ export default function ProvisioningForm({
       {/* External Manager Settings - Only show for TMS mode */}
       {isTmsMode && (
         <Card>
-          <CardHeader className="pb-3">
-            <h4 className="text-md font-semibold">ExternalManager</h4>
+          <CardHeader className="pb-1 pt-2 px-3">
+            <h4 className="text-xs font-medium">ExternalManager</h4>
           </CardHeader>
           <CardBody className="pt-0 space-y-4">
             <Input
@@ -318,6 +321,7 @@ export default function ProvisioningForm({
               isInvalid={!!errors.address}
               label="Address"
               placeholder="tms-server.company.com"
+              size="sm"
               value={formData.externalManager.address}
               onValueChange={(value) =>
                 setFormData((prev) => ({
@@ -331,6 +335,7 @@ export default function ProvisioningForm({
               description="Alternative TMS server address"
               label="AlternateAddress"
               placeholder=""
+              size="sm"
               value={formData.externalManager.alternateAddress || ""}
               onValueChange={(value) =>
                 setFormData((prev) => ({
@@ -344,6 +349,7 @@ export default function ProvisioningForm({
               description="Windows domain name"
               label="Domain"
               placeholder="WORKGROUP"
+              size="sm"
               value={formData.externalManager.domain}
               onValueChange={(value) =>
                 setFormData((prev) => ({
@@ -357,6 +363,7 @@ export default function ProvisioningForm({
               description="TMS web service path"
               label="Path"
               placeholder="tms/public/external/management/SystemManagementService.asmx"
+              size="sm"
               value={formData.externalManager.path}
               onValueChange={(value) =>
                 setFormData((prev) => ({
@@ -369,6 +376,7 @@ export default function ProvisioningForm({
             <Select
               label="Protocol"
               selectedKeys={[formData.externalManager.protocol]}
+              size="sm"
               onSelectionChange={(keys) => {
                 const protocol = Array.from(keys)[0] as ProtocolType;
 
@@ -390,10 +398,10 @@ export default function ProvisioningForm({
       {/* Progress Display */}
       {isProvisioning && (
         <Card className="bg-default-50 border-primary-200">
-          <CardBody className="flex flex-row items-center gap-4 p-4">
-            <CircularProgress color="primary" label="Provisioning..." size="md" />
+          <CardBody className="flex flex-row items-center gap-3 p-3">
+            <CircularProgress color="primary" label="Provisioning..." size="sm" />
             <div className="flex flex-col">
-              <p className="text-sm font-medium text-default-700">Configuring Device</p>
+              <p className="text-xs font-medium text-default-700">Configuring Device</p>
               <p className="text-xs text-default-500">{provisioningProgress || "Processing..."}</p>
             </div>
           </CardBody>
@@ -403,15 +411,15 @@ export default function ProvisioningForm({
       {/* Error Display */}
       {provisioningError && !isProvisioning && (
         <Card className="bg-danger-50 border-danger-200">
-          <CardBody className="p-4">
+          <CardBody className="p-3">
             <div className="flex items-start gap-3">
               <Icon
                 className="text-danger-500 mt-0.5"
                 icon="solar:danger-circle-outline"
-                width={20}
+                width={16}
               />
               <div className="flex flex-col">
-                <p className="text-sm font-medium text-danger-700">Provisioning Failed</p>
+                <p className="text-xs font-medium text-danger-700">Provisioning Failed</p>
                 <p className="text-xs text-danger-600 mt-1">{provisioningError}</p>
               </div>
             </div>
@@ -429,7 +437,7 @@ export default function ProvisioningForm({
           isDisabled={isProvisioning}
           isLoading={isLoading || isProvisioning}
           startContent={
-            !(isLoading || isProvisioning) && <Icon icon="solar:settings-outline" width={20} />
+            !(isLoading || isProvisioning) && <Icon icon="solar:settings-outline" width={16} />
           }
           onPress={handleSubmit}
         >

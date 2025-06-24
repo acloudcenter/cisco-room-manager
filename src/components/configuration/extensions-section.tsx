@@ -170,7 +170,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
     return (
       <Card className="bg-background/70 backdrop-blur-md mt-4">
         <CardBody className="flex items-center justify-center h-32">
-          <Spinner size="lg" />
+          <Spinner size="sm" />
         </CardBody>
       </Card>
     );
@@ -181,13 +181,13 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
       <Card className="bg-background/70 backdrop-blur-md mt-4">
         <CardHeader className="justify-between">
           <div className="flex items-center gap-2">
-            <Icon className="text-primary" icon="solar:widget-2-bold-duotone" width="24" />
-            <h4 className="text-lg font-semibold">Extensions</h4>
+            <Icon className="text-primary" icon="solar:widget-2-bold-duotone" width="16" />
+            <h4 className="text-xs font-medium">Extensions</h4>
           </div>
           <Button
             color="primary"
             size="sm"
-            startContent={<Icon icon="solar:upload-bold-duotone" width="20" />}
+            startContent={<Icon icon="solar:upload-bold-duotone" width="16" />}
             onPress={onUploadOpen}
           >
             Upload Extension
@@ -195,10 +195,10 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
         </CardHeader>
         <Divider />
         <CardBody className="gap-3">
-          {error && <div className="text-danger text-sm">{error}</div>}
+          {error && <div className="text-danger text-xs">{error}</div>}
 
           {extensions.length === 0 ? (
-            <div className="text-center py-8 text-default-500">
+            <div className="text-center py-4 text-xs text-default-500">
               No extensions found on this device
             </div>
           ) : (
@@ -209,10 +209,10 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
                   className="flex items-center justify-between p-3 rounded-lg bg-default-50 dark:bg-default-50/10"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="text-primary" icon="solar:widget-3-bold-duotone" width="20" />
+                    <Icon className="text-primary" icon="solar:widget-3-bold-duotone" width="16" />
                     <div>
-                      <span className="font-medium">{extension.name}</span>
-                      <span className="text-sm text-default-500 ml-2">v{extension.version}</span>
+                      <span className="text-xs font-medium">{extension.name}</span>
+                      <span className="text-xs text-default-500 ml-2">v{extension.version}</span>
                     </div>
                     <Chip
                       color={extension.status === "Active" ? "success" : "default"}
@@ -230,7 +230,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
                       variant="light"
                       onPress={() => viewExtension(extension)}
                     >
-                      <Icon icon="solar:eye-bold" width="18" />
+                      <Icon icon="solar:eye-bold" width="16" />
                     </Button>
                     <Button
                       isIconOnly
@@ -243,7 +243,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
                         onDeleteOpen();
                       }}
                     >
-                      <Icon icon="solar:trash-bin-trash-bold" width="18" />
+                      <Icon icon="solar:trash-bin-trash-bold" width="16" />
                     </Button>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
               <ModalHeader className="flex flex-col gap-1">Upload New Extension</ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-4">
-                  <div className="text-sm text-default-500">
+                  <div className="text-xs text-default-500">
                     Paste the extension JSON configuration below. The extension must be in the
                     proper format for your device.
                   </div>

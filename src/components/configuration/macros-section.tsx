@@ -144,7 +144,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     return (
       <Card className="bg-background/70 backdrop-blur-md mt-4">
         <CardBody className="flex items-center justify-center h-32">
-          <Spinner size="lg" />
+          <Spinner size="sm" />
         </CardBody>
       </Card>
     );
@@ -155,13 +155,13 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
       <Card className="bg-background/70 backdrop-blur-md mt-4">
         <CardHeader className="justify-between">
           <div className="flex items-center gap-2">
-            <Icon className="text-primary" icon="solar:code-file-bold-duotone" width="24" />
-            <h4 className="text-lg font-semibold">Macros</h4>
+            <Icon className="text-primary" icon="solar:code-file-bold-duotone" width="16" />
+            <h4 className="text-xs font-medium">Macros</h4>
           </div>
           <Button
             color="primary"
             size="sm"
-            startContent={<Icon icon="solar:upload-bold-duotone" width="20" />}
+            startContent={<Icon icon="solar:upload-bold-duotone" width="16" />}
             onPress={onUploadOpen}
           >
             Upload Macro
@@ -172,7 +172,9 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
           {error && <div className="text-danger text-sm">{error}</div>}
 
           {macros.length === 0 ? (
-            <div className="text-center py-8 text-default-500">No macros found on this device</div>
+            <div className="text-center py-4 text-xs text-default-500">
+              No macros found on this device
+            </div>
           ) : (
             <div className="grid gap-3">
               {macros.map((macro) => (
@@ -181,8 +183,8 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                   className="flex items-center justify-between p-3 rounded-lg bg-default-50 dark:bg-default-50/10"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="text-primary" icon="solar:file-code-bold-duotone" width="20" />
-                    <span className="font-medium">{macro.name}</span>
+                    <Icon className="text-primary" icon="solar:file-code-bold-duotone" width="16" />
+                    <span className="text-xs font-medium">{macro.name}</span>
                     <Chip color={macro.active ? "success" : "default"} size="sm" variant="flat">
                       {macro.active ? "Running" : "Stopped"}
                     </Chip>
@@ -197,7 +199,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                     >
                       <Icon
                         icon={macro.active ? "solar:pause-bold" : "solar:play-bold"}
-                        width="18"
+                        width="16"
                       />
                     </Button>
                     <Button
@@ -207,7 +209,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                       variant="light"
                       onPress={() => viewMacro(macro)}
                     >
-                      <Icon icon="solar:eye-bold" width="18" />
+                      <Icon icon="solar:eye-bold" width="16" />
                     </Button>
                     <Button
                       isIconOnly
@@ -220,7 +222,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                         onDeleteOpen();
                       }}
                     >
-                      <Icon icon="solar:trash-bin-trash-bold" width="18" />
+                      <Icon icon="solar:trash-bin-trash-bold" width="16" />
                     </Button>
                   </div>
                 </div>
@@ -267,7 +269,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
               <ModalBody>
                 <div className="flex flex-col gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block" htmlFor="macro-name">
+                    <label className="text-xs font-medium mb-2 block" htmlFor="macro-name">
                       Macro Name
                     </label>
                     <input
@@ -280,7 +282,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block" htmlFor="macro-content">
+                    <label className="text-xs font-medium mb-2 block" htmlFor="macro-content">
                       Macro Content
                     </label>
                     <Textarea
