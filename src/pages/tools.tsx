@@ -85,8 +85,8 @@ export default function ToolsPage() {
                       src={tool.image}
                     />
                     {tool.status === "coming-soon" && (
-                      <div className="absolute top-2 right-2">
-                        <Chip color="warning" size="sm" variant="flat">
+                      <div className="absolute top-2 right-2 z-10">
+                        <Chip color="warning" size="sm" variant="solid">
                           Coming Soon
                         </Chip>
                       </div>
