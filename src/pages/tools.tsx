@@ -1,4 +1,4 @@
-import { Card, CardBody, CardFooter, Button, Image, Spacer, Chip } from "@heroui/react";
+import { Card, CardBody, CardFooter, Button, Image, Spacer } from "@heroui/react";
 
 import SidebarLayout from "@/layouts/sidebar-layout";
 
@@ -84,13 +84,6 @@ export default function ToolsPage() {
                       fallbackSrc="https://via.placeholder.com/400x225/09090b/71717a?text=Tool+Preview"
                       src={tool.image}
                     />
-                    {tool.status === "coming-soon" && (
-                      <div className="absolute top-2 right-2 z-10">
-                        <Chip color="warning" size="sm" variant="solid">
-                          Coming Soon
-                        </Chip>
-                      </div>
-                    )}
                   </div>
                   <Spacer y={2} />
                   <div className="flex flex-col gap-2 px-2">

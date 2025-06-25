@@ -16,6 +16,10 @@ import {
   ModalFooter,
   useDisclosure,
   Textarea,
+  CircularProgress,
+  Tabs,
+  Tab,
+  Tooltip,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -39,6 +43,11 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
   const [selectedExtension, setSelectedExtension] = useState<Extension | null>(null);
   const [extensionContent, setExtensionContent] = useState("");
   const [newExtensionContent, setNewExtensionContent] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     isOpen: isViewOpen,
@@ -117,7 +126,63 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
     }
   };
 
+  const resetUploadForm = () => {
+    setNewExtensionContent("");
+    setFileName("");
+    setUploadError(null);
+  };
+
+  const processFile = (file: File) => {
+    if (!file.name.match(/\.(json|xml)$/i)) {
+      setUploadError("Please select a valid extension file (.json or .xml)");
+
+      return;
+    }
+
+    setFileName(file.name);
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+
+      setNewExtensionContent(content);
+      setUploadError(null);
+    };
+    reader.onerror = () => {
+      setUploadError("Failed to read file");
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (file) processFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files[0];
+
+    if (file) processFile(file);
+  };
+
   const uploadExtension = async () => {
+    setIsUploading(true);
+    setUploadError(null);
+
     try {
       const xapi = ciscoConnectionService.getConnector();
 
@@ -133,15 +198,17 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
       });
 
       onUploadOpenChange();
-      setNewExtensionContent("");
+      resetUploadForm();
       fetchExtensions();
     } catch (error) {
       console.error("Error uploading extension:", error);
       if (error instanceof SyntaxError) {
-        setError("Invalid JSON format for extension");
+        setUploadError("Invalid JSON format for extension");
       } else {
-        setError("Failed to upload extension");
+        setUploadError(error instanceof Error ? error.message : "Failed to upload extension");
       }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -168,9 +235,10 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
 
   if (loading) {
     return (
-      <Card className="bg-background/70 backdrop-blur-md mt-4">
-        <CardBody className="flex items-center justify-center h-32">
+      <Card className="mt-4">
+        <CardBody className="flex items-center justify-center p-8">
           <Spinner size="sm" />
+          <p className="text-xs text-default-500 mt-2">Loading extensions...</p>
         </CardBody>
       </Card>
     );
@@ -178,73 +246,74 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
 
   return (
     <>
-      <Card className="bg-background/70 backdrop-blur-md mt-4">
-        <CardHeader className="justify-between">
+      <Card className="mt-4">
+        <CardHeader className="pb-1 pt-2 px-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Icon className="text-primary" icon="solar:widget-2-bold-duotone" width="16" />
-            <h4 className="text-xs font-medium">Extensions</h4>
+            <Icon icon="solar:widget-2-outline" width={16} />
+            <h4 className="text-xs font-medium">UI Extensions</h4>
           </div>
           <Button
-            color="primary"
             size="sm"
-            startContent={<Icon icon="solar:upload-bold-duotone" width="16" />}
+            startContent={<Icon icon="solar:add-circle-outline" width={14} />}
+            variant="flat"
             onPress={onUploadOpen}
           >
             Upload Extension
           </Button>
         </CardHeader>
         <Divider />
-        <CardBody className="gap-3">
-          {error && <div className="text-danger text-xs">{error}</div>}
+        <CardBody className="pt-1 pb-3 px-3 gap-3">
+          {error && <div className="text-danger text-xs p-2 bg-danger-50 rounded">{error}</div>}
 
           {extensions.length === 0 ? (
             <div className="text-center py-4 text-xs text-default-500">
               No extensions found on this device
             </div>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid gap-2">
               {extensions.map((extension) => (
                 <div
                   key={extension.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-default-50 dark:bg-default-50/10"
+                  className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10"
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="text-primary" icon="solar:widget-3-bold-duotone" width="16" />
-                    <div>
-                      <span className="text-xs font-medium">{extension.name}</span>
-                      <span className="text-xs text-default-500 ml-2">v{extension.version}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-medium truncate">{extension.name}</p>
+                      <span className="text-xs text-default-500">v{extension.version}</span>
+                      <Chip
+                        color={extension.status === "Active" ? "success" : "default"}
+                        size="sm"
+                        variant="flat"
+                      >
+                        {extension.status}
+                      </Chip>
                     </div>
-                    <Chip
-                      color={extension.status === "Active" ? "success" : "default"}
-                      size="sm"
-                      variant="flat"
-                    >
-                      {extension.status}
-                    </Chip>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      title="View extension details"
-                      variant="light"
-                      onPress={() => viewExtension(extension)}
-                    >
-                      <Icon icon="solar:eye-bold" width="16" />
-                    </Button>
-                    <Button
-                      isIconOnly
-                      color="danger"
-                      size="sm"
-                      title="Uninstall extension"
-                      variant="light"
-                      onPress={() => {
-                        setSelectedExtension(extension);
-                        onDeleteOpen();
-                      }}
-                    >
-                      <Icon icon="solar:trash-bin-trash-bold" width="16" />
-                    </Button>
+                  <div className="flex items-center gap-1 ml-2">
+                    <Tooltip content="View details">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        onPress={() => viewExtension(extension)}
+                      >
+                        <Icon icon="solar:eye-outline" width={14} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content="Uninstall extension">
+                      <Button
+                        isIconOnly
+                        color="danger"
+                        size="sm"
+                        variant="light"
+                        onPress={() => {
+                          setSelectedExtension(extension);
+                          onDeleteOpen();
+                        }}
+                      >
+                        <Icon icon="solar:trash-bin-trash-outline" width={14} />
+                      </Button>
+                    </Tooltip>
                   </div>
                 </div>
               ))}
@@ -284,36 +353,142 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
       </Modal>
 
       {/* Upload Extension Modal */}
-      <Modal isOpen={isUploadOpen} size="3xl" onOpenChange={onUploadOpenChange}>
+      <Modal
+        isOpen={isUploadOpen}
+        size="3xl"
+        onOpenChange={(open) => {
+          if (!open && !isUploading) {
+            onUploadOpenChange();
+            resetUploadForm();
+          }
+        }}
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">Upload New Extension</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">
+                <h3 className="text-sm font-semibold">Upload New Extension</h3>
+                <p className="text-xs text-default-500">Upload a UI extension configuration file</p>
+              </ModalHeader>
               <ModalBody>
-                <div className="flex flex-col gap-4">
-                  <div className="text-xs text-default-500">
-                    Paste the extension JSON configuration below. The extension must be in the
-                    proper format for your device.
+                <Tabs fullWidth aria-label="Upload method" size="sm">
+                  <Tab key="file" title="Upload File">
+                    <div className="space-y-3 py-2">
+                      <input
+                        ref={fileInputRef}
+                        accept=".json,.xml"
+                        className="hidden"
+                        type="file"
+                        onChange={handleFileSelect}
+                      />
+
+                      <div
+                        className={`
+                          border-2 border-dashed rounded-lg p-8 text-center transition-colors
+                          ${isDragOver ? "border-primary bg-primary-50" : "border-default-300 bg-default-50"}
+                          ${fileName ? "bg-success-50 border-success" : ""}
+                        `}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                      >
+                        {fileName ? (
+                          <div className="space-y-3">
+                            <div className="flex justify-center">
+                              <Icon
+                                className="text-success"
+                                icon="solar:check-circle-bold"
+                                width={48}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{fileName}</p>
+                              <p className="text-xs text-default-500 mt-1">
+                                Extension ready to install
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              onPress={() => {
+                                setNewExtensionContent("");
+                                setFileName("");
+                              }}
+                            >
+                              Choose Different File
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex justify-center">
+                              <Icon
+                                className="text-default-300"
+                                icon="solar:cloud-upload-outline"
+                                width={48}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                Drop extension file here or click to browse
+                              </p>
+                              <p className="text-xs text-default-500 mt-1">
+                                Supports .json and .xml files
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              onPress={() => fileInputRef.current?.click()}
+                            >
+                              Browse Files
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Tab>
+
+                  <Tab key="paste" title="Paste Configuration">
+                    <div className="py-2">
+                      <Textarea
+                        className="font-mono"
+                        label="Extension Configuration"
+                        maxRows={15}
+                        minRows={10}
+                        placeholder='{\n  "id": "my.extension.id",\n  "name": "My Extension",\n  "version": "1.0.0",\n  ...\n}'
+                        size="sm"
+                        value={newExtensionContent}
+                        variant="bordered"
+                        onValueChange={setNewExtensionContent}
+                      />
+                    </div>
+                  </Tab>
+                </Tabs>
+
+                {uploadError && (
+                  <div className="text-danger text-xs p-2 bg-danger-50 rounded mt-2">
+                    {uploadError}
                   </div>
-                  <Textarea
-                    classNames={{
-                      base: "font-mono",
-                      input: "text-xs",
-                    }}
-                    maxRows={25}
-                    minRows={15}
-                    placeholder='{\n  "id": "my.extension.id",\n  "name": "My Extension",\n  "version": "1.0.0",\n  ...\n}'
-                    value={newExtensionContent}
-                    onChange={(e) => setNewExtensionContent(e.target.value)}
-                  />
-                </div>
+                )}
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button isDisabled={isUploading} size="sm" variant="light" onPress={onClose}>
                   Cancel
                 </Button>
-                <Button color="primary" isDisabled={!newExtensionContent} onPress={uploadExtension}>
-                  Install Extension
+                <Button
+                  color="primary"
+                  isDisabled={!newExtensionContent || isUploading}
+                  size="sm"
+                  onPress={uploadExtension}
+                >
+                  {isUploading ? (
+                    <div className="flex items-center gap-2">
+                      <CircularProgress color="current" size="sm" />
+                      <span>Installing...</span>
+                    </div>
+                  ) : (
+                    "Install Extension"
+                  )}
                 </Button>
               </ModalFooter>
             </>

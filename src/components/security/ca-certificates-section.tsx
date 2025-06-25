@@ -119,7 +119,7 @@ export default function CACertificatesSection() {
       <Card>
         <CardHeader className="pb-1 pt-2 px-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Icon icon="solar:shield-check-outline" width={16} />
+            <Icon icon="solar:diploma-verified-outline" width={16} />
             <h4 className="text-xs font-medium">CA Certificates</h4>
           </div>
           <Button

@@ -14,7 +14,7 @@ export default function SecurityDisplay() {
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Icon className="text-primary" icon="solar:shield-check-outline" width={18} />
+        <Icon className="text-primary" icon="solar:shield-keyhole-outline" width={18} />
         <div>
           <h3 className="text-sm font-semibold">Security Management</h3>
           <p className="text-xs text-default-500">
@@ -37,7 +37,7 @@ export default function SecurityDisplay() {
           key="ca"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:shield-check-outline" width={14} />
+              <Icon icon="solar:diploma-verified-outline" width={14} />
               <span className="text-xs">CA Certificates</span>
             </div>
           }
@@ -49,7 +49,7 @@ export default function SecurityDisplay() {
           key="cucm"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:shield-keyhole-outline" width={14} />
+              <Icon icon="solar:key-outline" width={14} />
               <span className="text-xs">CUCM (CTL/ITL)</span>
             </div>
           }

@@ -13,6 +13,7 @@ import {
   Textarea,
   Tabs,
   Tab,
+  CircularProgress,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -29,6 +30,7 @@ export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCert
   const [fileName, setFileName] = React.useState<string>("");
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
@@ -37,11 +39,7 @@ export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCert
     setError(null);
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
+  const processFile = (file: File) => {
     if (!file.name.match(/\.(pem|crt|cer|cert)$/i)) {
       setError("Please select a valid certificate file (.pem, .crt, .cer, .cert)");
 
@@ -63,6 +61,31 @@ export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCert
     };
 
     reader.readAsText(file);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (file) processFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files[0];
+
+    if (file) processFile(file);
   };
 
   const handlePaste = (value: string) => {
@@ -139,35 +162,69 @@ export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCert
                       onChange={handleFileSelect}
                     />
 
-                    <Button
-                      className="w-full"
-                      size="sm"
-                      startContent={<Icon icon="solar:upload-outline" width={16} />}
-                      variant="flat"
-                      onPress={() => fileInputRef.current?.click()}
+                    <div
+                      className={`
+                        border-2 border-dashed rounded-lg p-8 text-center transition-colors
+                        ${isDragOver ? "border-primary bg-primary-50" : "border-default-300 bg-default-50"}
+                        ${fileName ? "bg-success-50 border-success" : ""}
+                      `}
+                      onDragLeave={handleDragLeave}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
                     >
-                      Select Certificate File
-                    </Button>
-
-                    {fileName && (
-                      <div className="flex items-center gap-2 p-2 bg-default-100 rounded">
-                        <Icon icon="solar:file-text-outline" width={16} />
-                        <span className="text-xs">{fileName}</span>
-                      </div>
-                    )}
-
-                    {certificateContent && (
-                      <Textarea
-                        isReadOnly
-                        className="font-mono"
-                        label="Certificate Content"
-                        maxRows={10}
-                        minRows={5}
-                        size="sm"
-                        value={certificateContent}
-                        variant="bordered"
-                      />
-                    )}
+                      {fileName ? (
+                        <div className="space-y-3">
+                          <div className="flex justify-center">
+                            <Icon
+                              className="text-success"
+                              icon="solar:check-circle-bold"
+                              width={48}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{fileName}</p>
+                            <p className="text-xs text-default-500 mt-1">
+                              Certificate ready to upload
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="flat"
+                            onPress={() => {
+                              setCertificateContent("");
+                              setFileName("");
+                            }}
+                          >
+                            Choose Different File
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex justify-center">
+                            <Icon
+                              className="text-default-300"
+                              icon="solar:cloud-upload-outline"
+                              width={48}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">
+                              Drop certificate file here or click to browse
+                            </p>
+                            <p className="text-xs text-default-500 mt-1">
+                              Supports .pem, .crt, .cer, .cert files
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="flat"
+                            onPress={() => fileInputRef.current?.click()}
+                          >
+                            Browse Files
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Tab>
 
@@ -201,12 +258,18 @@ MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
               </Button>
               <Button
                 color="primary"
-                isDisabled={!certificateContent}
-                isLoading={isUploading}
+                isDisabled={!certificateContent || isUploading}
                 size="sm"
                 onPress={handleUpload}
               >
-                Add Certificate
+                {isUploading ? (
+                  <div className="flex items-center gap-2">
+                    <CircularProgress color="current" size="sm" />
+                    <span>Uploading...</span>
+                  </div>
+                ) : (
+                  "Add Certificate"
+                )}
               </Button>
             </ModalFooter>
           </>

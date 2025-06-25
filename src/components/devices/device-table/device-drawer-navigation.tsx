@@ -19,7 +19,7 @@ export const DeviceDrawerNavigation: React.FC<DeviceDrawerNavigationProps> = ({
     { key: "status", label: "Status", icon: "solar:chart-outline" },
     { key: "bookings", label: "Bookings", icon: "solar:calendar-outline" },
     { key: "configure", label: "Configure", icon: "solar:settings-outline" },
-    { key: "provision", label: "Provision", icon: "solar:shield-check-outline" },
+    { key: "provision", label: "Provision", icon: "solar:server-outline" },
     { key: "security", label: "Security", icon: "solar:shield-keyhole-outline" },
   ];
 

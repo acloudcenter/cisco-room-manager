@@ -94,7 +94,7 @@ export default function CUCMCertificatesSection() {
       <Card>
         <CardHeader className="pb-1 pt-2 px-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Icon icon="solar:shield-keyhole-outline" width={16} />
+            <Icon icon="solar:key-outline" width={16} />
             <h4 className="text-xs font-medium">CUCM Certificates (CTL/ITL)</h4>
           </div>
           {hasCUCMCertificates && (

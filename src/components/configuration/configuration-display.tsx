@@ -15,10 +15,10 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
   const [selectedTab, setSelectedTab] = useState("macros");
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Icon className="text-primary" icon="solar:settings-bold-duotone" width={16} />
+      <div className="flex items-center gap-2">
+        <Icon className="text-primary" icon="solar:settings-outline" width={18} />
         <div>
           <h3 className="text-sm font-semibold">Device Configuration</h3>
           <p className="text-xs text-default-500">
@@ -30,18 +30,19 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
       <Tabs
         aria-label="Configuration options"
         classNames={{
-          tabList: "bg-background/70 backdrop-blur-md",
-          cursor: "bg-primary/20",
-          tab: "data-[selected=true]:text-primary",
+          tabList: "gap-2",
+          tab: "px-3 h-8",
+          panel: "pt-3 pb-0 px-0",
         }}
         selectedKey={selectedTab}
+        size="sm"
         onSelectionChange={(key) => setSelectedTab(key as string)}
       >
         <Tab
           key="macros"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:code-file-bold-duotone" width="16" />
+              <Icon icon="solar:code-outline" width={14} />
               <span className="text-xs">Macros</span>
             </div>
           }
@@ -52,8 +53,8 @@ export const ConfigurationDisplay: React.FC<ConfigurationDisplayProps> = ({ devi
           key="extensions"
           title={
             <div className="flex items-center gap-2">
-              <Icon icon="solar:widget-2-bold-duotone" width="16" />
-              <span className="text-xs">Extensions</span>
+              <Icon icon="solar:widget-2-outline" width={14} />
+              <span className="text-xs">UI Extensions</span>
             </div>
           }
         >

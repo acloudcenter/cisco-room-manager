@@ -167,9 +167,9 @@ export default function ProvisioningForm({
     <div className="space-y-6">
       {/* Header Info */}
       <div className="flex items-center gap-2 p-3 bg-default-50 rounded-lg">
-        <Icon className="text-primary" icon="solar:settings-outline" width={16} />
+        <Icon className="text-primary" icon="solar:server-outline" width={16} />
         <div>
-          <h3 className="text-sm font-semibold">Provisioning Configuration</h3>
+          <h3 className="text-sm font-semibold">Edit Provisioning Configuration</h3>
           <p className="text-xs text-default-500">
             Configure {device?.info?.unitName || "device"} provisioning settings
           </p>

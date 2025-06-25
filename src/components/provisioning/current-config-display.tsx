@@ -138,10 +138,10 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Icon className="text-primary" icon="solar:settings-outline" width={16} />
+        <div className="flex items-center gap-2">
+          <Icon className="text-primary" icon="solar:server-outline" width={18} />
           <div>
-            <h3 className="text-sm font-semibold">Current Device Configuration</h3>
+            <h3 className="text-sm font-semibold">Provisioning Configuration</h3>
             <p className="text-xs text-default-500">{device?.info?.unitName || "Unknown Device"}</p>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function CurrentConfigDisplay({ device, onEdit }: CurrentConfigDi
             <Button
               color="primary"
               isDisabled={isProvisioning}
-              startContent={<Icon icon="solar:settings-outline" width={16} />}
+              startContent={<Icon icon="solar:pen-2-outline" width={16} />}
               onPress={onEdit}
             >
               Edit Configuration
