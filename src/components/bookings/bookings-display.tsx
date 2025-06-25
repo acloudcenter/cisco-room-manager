@@ -7,7 +7,16 @@ import type { ConnectedDevice } from "@/stores/device-store";
 import type { Booking, BookingsResponse } from "@/lib/bookings";
 
 import React from "react";
-import { Card, CardBody, CardHeader, Chip, CircularProgress, Button, Divider } from "@heroui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  CircularProgress,
+  Button,
+  Divider,
+  Switch,
+} from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { getTodaysBookings, getCurrentBooking } from "@/lib/bookings";
@@ -21,12 +30,15 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
   const [currentBooking, setCurrentBooking] = React.useState<Booking | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [usePexipApi, setUsePexipApi] = React.useState(false);
 
   const loadBookings = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // TODO: Add logic to switch between Native and Pexip APIs based on usePexipApi state
+      // For now, always use native API
       const [todaysBookings, current] = await Promise.all([
         getTodaysBookings(),
         getCurrentBooking(),
@@ -45,7 +57,7 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
 
   React.useEffect(() => {
     loadBookings();
-  }, [device]);
+  }, [device, usePexipApi]);
 
   const formatTime = (timeString: string) => {
     if (!timeString) return "";
@@ -151,6 +163,26 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
           Refresh
         </Button>
       </div>
+
+      {/* API Toggle */}
+      <Card>
+        <CardBody className="p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium">Booking API</p>
+              <p className="text-xs text-default-500">
+                {usePexipApi ? "Using Pexip Booking API" : "Using Native Booking API"}
+              </p>
+            </div>
+            <Switch
+              aria-label="Toggle between Native and Pexip booking API"
+              isSelected={usePexipApi}
+              size="sm"
+              onValueChange={setUsePexipApi}
+            />
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Current Meeting Status */}
       {currentBooking && (
