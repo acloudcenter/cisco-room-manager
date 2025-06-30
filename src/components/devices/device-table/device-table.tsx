@@ -10,6 +10,7 @@ import {
   TableCell,
   Button,
   Chip,
+  Tooltip,
   useDisclosure,
   Modal,
   ModalContent,
@@ -308,16 +309,30 @@ export default function DeviceTable() {
         );
       case "actions":
         return (
-          <div className="relative flex justify-center items-center">
-            <Button
-              isIconOnly
-              color="primary"
-              size="sm"
-              variant="flat"
-              onPress={() => handleAction(device.device, "status")}
-            >
-              <Icon icon="solar:tuning-square-2-outline" width={18} />
-            </Button>
+          <div className="relative flex justify-center items-center gap-1">
+            <Tooltip content="View device status" delay={500}>
+              <Button
+                isIconOnly
+                color="primary"
+                size="sm"
+                variant="light"
+                onPress={() => handleAction(device.device, "status")}
+              >
+                <Icon icon="heroicons:bolt-16-solid" width={16} />
+              </Button>
+            </Tooltip>
+            <Tooltip color="danger" content="Disconnect device" delay={500}>
+              <Button
+                isIconOnly
+                className="hover:bg-danger-50"
+                color="danger"
+                size="sm"
+                variant="light"
+                onPress={() => handleAction(device.device, "disconnect")}
+              >
+                <Icon icon="heroicons:x-circle-20-solid" width={20} />
+              </Button>
+            </Tooltip>
           </div>
         );
       default:
