@@ -1,11 +1,11 @@
 import { create } from "zustand";
 
 import {
-  ciscoConnectionService,
   ConnectionCredentials,
   ConnectionState,
   ConnectedDeviceInfo,
 } from "@/services/cisco-connection-service";
+import { connectionManager } from "@/services/connection-manager";
 
 export interface ConnectedDevice {
   id: string;
@@ -32,9 +32,10 @@ interface DeviceState {
 
   // Actions
   connectDevice: (credentials: ConnectionCredentials) => Promise<void>;
-  disconnectDevice: () => void;
+  disconnectDevice: (deviceId?: string) => void;
   clearConnectionError: () => void;
   getCurrentDevice: () => ConnectedDevice | null;
+  getDeviceService: (deviceId: string) => any; // Returns CiscoConnectionService instance
   setProvisioningState: (isProvisioning: boolean, progress?: string) => void;
   setProvisioningError: (error: string | null) => void;
   setDrawerMode: (mode: "push" | "overlay") => void;
@@ -55,10 +56,29 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     set({ isConnecting: true, connectionError: null });
 
     try {
-      // Use the Cisco connection service - returns boolean
-      const connected = await ciscoConnectionService.connect(credentials);
+      // Generate device ID from host
+      const deviceId = `device_${credentials.host.replace(/[^\w]/g, "_")}`;
+
+      // Check if device is already connected
+      const existingDevices = get().devices;
+
+      if (existingDevices.some((d) => d.id === deviceId)) {
+        throw new Error(`Device ${credentials.host} is already connected`);
+      }
+
+      // Check connection limit
+      if (!connectionManager.canAddMoreConnections()) {
+        throw new Error(`Connection limit reached. Please disconnect a device before adding more.`);
+      }
+
+      // Get dedicated connection service for this device
+      const deviceService = connectionManager.getConnection(deviceId);
+
+      // Connect using the device-specific service
+      const connected = await deviceService.connect(credentials);
 
       if (!connected) {
+        connectionManager.disconnectDevice(deviceId); // Clean up on failure
         throw new Error(
           "Connection failed. Please check: 1) Your credentials are correct, 2) The device's certificate is trusted (visit https://[device-ip] to accept it), 3) You're on the same network as the device",
         );
@@ -67,12 +87,12 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       // Wait a bit for device info to be populated
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const deviceInfo = ciscoConnectionService.getDeviceInfo();
-      const connectionState = ciscoConnectionService.getConnectionState();
+      const deviceInfo = deviceService.getDeviceInfo();
+      const connectionState = deviceService.getConnectionState();
 
       if (connectionState === "connected" && deviceInfo) {
         const connectedDevice: ConnectedDevice = {
-          id: `device_${credentials.host.replace(/[^\w]/g, "_")}`,
+          id: deviceId,
           info: deviceInfo,
           credentials: {
             ...credentials,
@@ -82,12 +102,13 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
           connectedAt: new Date(),
         };
 
-        set({
-          devices: [connectedDevice], // Single device for now
+        set((state) => ({
+          devices: [...state.devices, connectedDevice], // Append to existing devices
           isConnecting: false,
           connectionError: null,
-        });
+        }));
       } else {
+        connectionManager.disconnectDevice(deviceId); // Clean up on failure
         throw new Error("Failed to retrieve device information");
       }
     } catch (error) {
@@ -101,9 +122,18 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     }
   },
 
-  disconnectDevice: () => {
-    ciscoConnectionService.disconnect();
-    set({ devices: [] });
+  disconnectDevice: (deviceId?: string) => {
+    if (deviceId) {
+      // Disconnect specific device
+      connectionManager.disconnectDevice(deviceId);
+      set((state) => ({
+        devices: state.devices.filter((d) => d.id !== deviceId),
+      }));
+    } else {
+      // Disconnect all devices
+      connectionManager.disconnectAll();
+      set({ devices: [] });
+    }
   },
 
   clearConnectionError: () => {
@@ -114,6 +144,17 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     const { devices } = get();
 
     return devices.length > 0 ? devices[0] : null;
+  },
+
+  getDeviceService: (deviceId: string) => {
+    // Check if device is connected
+    const device = get().devices.find((d) => d.id === deviceId);
+
+    if (!device) {
+      throw new Error(`Device ${deviceId} not found or not connected`);
+    }
+
+    return connectionManager.getConnection(deviceId);
   },
 
   setProvisioningState: (isProvisioning: boolean, progress?: string) => {

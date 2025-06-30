@@ -84,14 +84,14 @@ export default function DeviceStatusDisplay({ device }: DeviceStatusDisplayProps
         provisioningStatus,
         sipStatus,
       ] = await Promise.all([
-        getSystemInfo(),
-        getAudioStatus(),
-        getVideoStatus(),
-        getCallStatus(),
-        getStandbyStatus(),
-        getHealthStatus(),
-        getProvisioningStatus(),
-        getSipStatus(),
+        getSystemInfo(device),
+        getAudioStatus(device),
+        getVideoStatus(device),
+        getCallStatus(device),
+        getStandbyStatus(device),
+        getHealthStatus(device),
+        getProvisioningStatus(device),
+        getSipStatus(device),
       ]);
 
       setStatusData({

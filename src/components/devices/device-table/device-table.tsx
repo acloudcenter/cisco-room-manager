@@ -461,7 +461,18 @@ export default function DeviceTable() {
             <Button
               color="danger"
               onPress={() => {
-                disconnectDevice();
+                if (pendingDisconnect?.device) {
+                  // Disconnect specific device
+                  disconnectDevice(pendingDisconnect.device.id);
+                } else if (pendingDisconnect?.count && pendingDisconnect.count > 1) {
+                  // Disconnect selected devices (bulk action)
+                  const selectedDeviceIds = Array.from(selectedKeys).map((key) => key.toString());
+
+                  selectedDeviceIds.forEach((id) => disconnectDevice(id));
+                } else {
+                  // Disconnect all devices (fallback)
+                  disconnectDevice();
+                }
                 setSelectedKeys(new Set([])); // Clear selection
                 onConfirmClose();
                 setPendingDisconnect(null);

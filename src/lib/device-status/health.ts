@@ -5,14 +5,15 @@
  */
 
 import type { HealthStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get basic device health status
  */
-export async function getHealthStatus(): Promise<HealthStatus> {
-  const xapi = getConnector();
+export async function getHealthStatus(device?: ConnectedDevice): Promise<HealthStatus> {
+  const xapi = getConnector(device);
 
   try {
     const [temperature, fanSpeed, powerConsumption] = await Promise.all([

@@ -5,14 +5,15 @@
  */
 
 import type { SystemInfo } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get comprehensive system information
  */
-export async function getSystemInfo(): Promise<SystemInfo> {
-  const xapi = getConnector();
+export async function getSystemInfo(device?: ConnectedDevice): Promise<SystemInfo> {
+  const xapi = getConnector(device);
 
   try {
     const [name, platform, version, serialNumber, uptime, networkInfo] = await Promise.all([

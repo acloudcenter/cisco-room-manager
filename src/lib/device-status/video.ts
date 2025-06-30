@@ -5,14 +5,15 @@
  */
 
 import type { VideoStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get video system status
  */
-export async function getVideoStatus(): Promise<VideoStatus> {
-  const xapi = getConnector();
+export async function getVideoStatus(device?: ConnectedDevice): Promise<VideoStatus> {
+  const xapi = getConnector(device);
 
   try {
     // Get basic video connector info

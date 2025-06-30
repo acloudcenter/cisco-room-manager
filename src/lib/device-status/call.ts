@@ -5,14 +5,15 @@
  */
 
 import type { CallStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get current call status
  */
-export async function getCallStatus(): Promise<CallStatus> {
-  const xapi = getConnector();
+export async function getCallStatus(device?: ConnectedDevice): Promise<CallStatus> {
+  const xapi = getConnector(device);
 
   try {
     const [status, duration, remoteNumber, direction] = await Promise.all([
@@ -36,8 +37,8 @@ export async function getCallStatus(): Promise<CallStatus> {
 /**
  * Get standby status
  */
-export async function getStandbyStatus() {
-  const xapi = getConnector();
+export async function getStandbyStatus(device?: ConnectedDevice) {
+  const xapi = getConnector(device);
 
   try {
     const state = await xapi.Status.Standby.State.get().catch(() => "Off");

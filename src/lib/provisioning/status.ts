@@ -5,14 +5,15 @@
  */
 
 import type { ProvisioningStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get current provisioning status from device
  */
-export async function getProvisioningStatus(): Promise<ProvisioningStatus> {
-  const xapi = getConnector();
+export async function getProvisioningStatus(device?: ConnectedDevice): Promise<ProvisioningStatus> {
+  const xapi = getConnector(device);
 
   try {
     const [status, lastResult, connectivity, registration] = await Promise.all([
@@ -36,9 +37,9 @@ export async function getProvisioningStatus(): Promise<ProvisioningStatus> {
 /**
  * Check if device is provisioned
  */
-export async function isProvisioned(): Promise<boolean> {
+export async function isProvisioned(device?: ConnectedDevice): Promise<boolean> {
   try {
-    const status = await getProvisioningStatus();
+    const status = await getProvisioningStatus(device);
 
     return status.status === "Provisioned";
   } catch {
@@ -49,8 +50,8 @@ export async function isProvisioned(): Promise<boolean> {
 /**
  * Get current provisioning mode
  */
-export async function getProvisioningMode(): Promise<string> {
-  const xapi = getConnector();
+export async function getProvisioningMode(device?: ConnectedDevice): Promise<string> {
+  const xapi = getConnector(device);
 
   try {
     const mode = await xapi.Config.Provisioning.Mode.get().catch(() => "Off");

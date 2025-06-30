@@ -5,14 +5,15 @@
  */
 
 import type { AudioStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get audio system status
  */
-export async function getAudioStatus(): Promise<AudioStatus> {
-  const xapi = getConnector();
+export async function getAudioStatus(device?: ConnectedDevice): Promise<AudioStatus> {
+  const xapi = getConnector(device);
 
   try {
     const [volume, micCount, micMuted, speakerCount] = await Promise.all([

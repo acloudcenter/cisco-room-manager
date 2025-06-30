@@ -5,14 +5,15 @@
  */
 
 import type { SipStatus } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get SIP registration status and configuration
  */
-export async function getSipStatus(): Promise<SipStatus> {
-  const xapi = getConnector();
+export async function getSipStatus(device?: ConnectedDevice): Promise<SipStatus> {
+  const xapi = getConnector(device);
 
   try {
     // Get SIP registration status from first registration slot
