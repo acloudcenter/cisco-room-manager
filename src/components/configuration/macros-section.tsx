@@ -70,7 +70,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     setError(null);
 
     try {
-      const macroList = await getMacroList();
+      const macroList = await getMacroList(device);
 
       setMacros(macroList);
     } catch (error) {
@@ -84,7 +84,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
 
   const viewMacro = async (macro: Macro) => {
     try {
-      const macroDetails = await getMacro(macro.name);
+      const macroDetails = await getMacro(device, macro.name);
 
       setMacroContent(macroDetails.content);
       setSelectedMacro(macro);
@@ -159,7 +159,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     setUploadError(null);
 
     try {
-      const result = await saveMacro(newMacroName, newMacroContent, {
+      const result = await saveMacro(device, newMacroName, newMacroContent, {
         overwrite: true,
         activate: true,
       });
@@ -183,7 +183,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
     if (!selectedMacro) return;
 
     try {
-      const result = await removeMacro(selectedMacro.name);
+      const result = await removeMacro(device, selectedMacro.name);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to remove macro");
@@ -200,7 +200,7 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
 
   const handleToggleMacroStatus = async (macro: Macro) => {
     try {
-      const result = await toggleMacroStatus(macro.name, macro.active);
+      const result = await toggleMacroStatus(device, macro.name, macro.active);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to toggle macro status");

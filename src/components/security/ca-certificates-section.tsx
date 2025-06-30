@@ -23,7 +23,7 @@ import { getCACertificates, deleteCACertificate, type Certificate } from "@/lib/
 import { useDeviceStore } from "@/stores/device-store";
 
 export default function CACertificatesSection() {
-  const { isProvisioning } = useDeviceStore();
+  const { isProvisioning, connectedDevice } = useDeviceStore();
   const [certificates, setCertificates] = React.useState<Certificate[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function CACertificatesSection() {
     setError(null);
 
     try {
-      const result = await getCACertificates();
+      const result = await getCACertificates(connectedDevice);
 
       setCertificates(result.certificates);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function CACertificatesSection() {
   const handleDelete = async (fingerprint: string) => {
     setDeletingFingerprint(fingerprint);
     try {
-      await deleteCACertificate(fingerprint);
+      await deleteCACertificate(connectedDevice, fingerprint);
       await loadCertificates();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete certificate");
@@ -196,6 +196,7 @@ export default function CACertificatesSection() {
       </Card>
 
       <AddCertificateModal
+        device={connectedDevice}
         isOpen={isAddOpen}
         onOpenChange={onAddOpenChange}
         onSuccess={loadCertificates}

@@ -4,6 +4,8 @@
  */
 
 // @ts-ignore - jsxapi doesn't have TypeScript definitions
+import { EventEmitter } from "events";
+
 import * as jsxapi from "jsxapi";
 
 export interface ConnectionCredentials {
@@ -21,13 +23,18 @@ export interface ConnectedDeviceInfo {
   softwareVersion: string;
 }
 
-class CiscoConnectionService {
+class CiscoConnectionService extends EventEmitter {
   private connection: ConnectionState = "not-connected";
   private connector: any = null;
   private login: ConnectionCredentials | null = null;
   private unitName = "";
   private unitType = "";
   private softwareVersion = "";
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+
+  constructor() {
+    super();
+  }
 
   /**
    * Connect to device using event-based pattern like Cisco's official tool
@@ -85,9 +92,14 @@ class CiscoConnectionService {
 
         // Set up close handler
         xapi.on("close", () => {
-          this.connection = "not-connected";
-          this.connector = null;
+          this.handleDisconnection();
         });
+
+        // Start heartbeat monitoring
+        this.startHeartbeat();
+
+        // Emit connected event
+        this.emit("connected", this.login?.host);
 
         resolve(true);
       });
@@ -122,6 +134,10 @@ class CiscoConnectionService {
    * Disconnect from device
    */
   disconnect(): void {
+    const host = this.login?.host;
+
+    this.stopHeartbeat();
+
     if (this.connector) {
       this.connector.close();
       this.connector = null;
@@ -130,6 +146,55 @@ class CiscoConnectionService {
     this.login = null;
     this.unitName = "";
     this.unitType = "";
+    this.softwareVersion = "";
+
+    // Emit disconnected event
+    this.emit("disconnected", host);
+  }
+
+  /**
+   * Handle unexpected disconnection
+   */
+  private handleDisconnection(): void {
+    const host = this.login?.host;
+
+    this.stopHeartbeat();
+    this.connection = "not-connected";
+    this.connector = null;
+
+    // Emit disconnected event
+    this.emit("disconnected", host);
+  }
+
+  /**
+   * Start heartbeat monitoring
+   */
+  private startHeartbeat(): void {
+    this.stopHeartbeat(); // Clear any existing interval
+
+    // Check connection health every 30 seconds
+    this.heartbeatInterval = setInterval(async () => {
+      if (this.connector) {
+        try {
+          // Simple ping using a lightweight status query
+          await this.connector.Status.Standby.State.get();
+        } catch (error) {
+          // Connection lost
+          console.warn("Heartbeat failed, connection lost:", error);
+          this.handleDisconnection();
+        }
+      }
+    }, 30000); // 30 seconds
+  }
+
+  /**
+   * Stop heartbeat monitoring
+   */
+  private stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
   }
 
   /**

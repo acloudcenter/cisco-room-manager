@@ -2,6 +2,8 @@
  * Add Certificate Modal Component
  */
 
+import type { ConnectedDevice } from "@/stores/device-store";
+
 import React from "react";
 import {
   Modal,
@@ -23,9 +25,15 @@ interface AddCertificateModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  device?: ConnectedDevice;
 }
 
-export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCertificateModalProps) {
+export function AddCertificateModal({
+  isOpen,
+  onOpenChange,
+  onSuccess,
+  device,
+}: AddCertificateModalProps) {
   const [certificateContent, setCertificateContent] = React.useState("");
   const [fileName, setFileName] = React.useState<string>("");
   const [isUploading, setIsUploading] = React.useState(false);
@@ -123,7 +131,7 @@ export function AddCertificateModal({ isOpen, onOpenChange, onSuccess }: AddCert
     setError(null);
 
     try {
-      await addCACertificate(certificateContent);
+      await addCACertificate(device, certificateContent);
       onSuccess();
       onOpenChange(false);
       resetForm();

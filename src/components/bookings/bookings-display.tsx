@@ -40,8 +40,8 @@ export default function BookingsDisplay({ device }: BookingsDisplayProps) {
       // TODO: Add logic to switch between Native and Pexip APIs based on usePexipApi state
       // For now, always use native API
       const [todaysBookings, current] = await Promise.all([
-        getTodaysBookings(),
-        getCurrentBooking(),
+        getTodaysBookings(device),
+        getCurrentBooking(device),
       ]);
 
       setBookingsData(todaysBookings);

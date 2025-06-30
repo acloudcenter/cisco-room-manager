@@ -3,25 +3,23 @@
  */
 
 import type { Certificate, CertificateList, CertificateFormat } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
-import { ciscoConnectionService } from "@/services/cisco-connection-service";
+import { getConnector } from "@/lib/utils/get-connector";
 
 /**
  * Get all CA certificates
  */
 export async function getCACertificates(
+  device?: ConnectedDevice,
   format: CertificateFormat = "Text",
 ): Promise<CertificateList> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
+  const connector = getConnector(device);
 
   try {
-    const response = await ciscoConnectionService
-      .getConnector()
-      ?.Command.Security.Certificates.CA.Show({
-        Format: format,
-      });
+    const response = await connector.Command.Security.Certificates.CA.Show({
+      Format: format,
+    });
 
     // Parse the response to extract certificates
     const certificates: Certificate[] = [];
@@ -58,19 +56,20 @@ export async function getCACertificates(
 /**
  * Add a new CA certificate
  */
-export async function addCACertificate(certificateContent: string): Promise<void> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
-
-  if (!certificateContent.trim()) {
+export async function addCACertificate(
+  device?: ConnectedDevice,
+  certificateContent?: string,
+): Promise<void> {
+  if (!certificateContent?.trim()) {
     throw new Error("Certificate content cannot be empty");
   }
+
+  const connector = getConnector(device);
 
   try {
     // This is a multiline command that expects the certificate content
     // The certificate content should be passed as the body parameter
-    await ciscoConnectionService.getConnector()?.Command.Security.Certificates.CA.Add({
+    await connector.Command.Security.Certificates.CA.Add({
       body: certificateContent,
     });
   } catch (error) {
@@ -82,17 +81,18 @@ export async function addCACertificate(certificateContent: string): Promise<void
 /**
  * Delete a CA certificate by fingerprint
  */
-export async function deleteCACertificate(fingerprint: string): Promise<void> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
-
+export async function deleteCACertificate(
+  device?: ConnectedDevice,
+  fingerprint?: string,
+): Promise<void> {
   if (!fingerprint) {
     throw new Error("Certificate fingerprint is required");
   }
 
+  const connector = getConnector(device);
+
   try {
-    await ciscoConnectionService.getConnector()?.Command.Security.Certificates.CA.Delete({
+    await connector.Command.Security.Certificates.CA.Delete({
       Fingerprint: fingerprint,
     });
   } catch (error) {

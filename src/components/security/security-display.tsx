@@ -3,13 +3,19 @@
  * Container for all security-related functionality
  */
 
+import type { ConnectedDevice } from "@/stores/device-store";
+
 import { Tabs, Tab } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import CACertificatesSection from "./ca-certificates-section";
 import CUCMCertificatesSection from "./cucm-certificates-section";
 
-export default function SecurityDisplay() {
+interface SecurityDisplayProps {
+  device: ConnectedDevice;
+}
+
+export default function SecurityDisplay({ device }: SecurityDisplayProps) {
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -42,7 +48,7 @@ export default function SecurityDisplay() {
             </div>
           }
         >
-          <CACertificatesSection />
+          <CACertificatesSection device={device} />
         </Tab>
 
         <Tab
@@ -54,7 +60,7 @@ export default function SecurityDisplay() {
             </div>
           }
         >
-          <CUCMCertificatesSection />
+          <CUCMCertificatesSection device={device} />
         </Tab>
       </Tabs>
     </div>

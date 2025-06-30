@@ -27,10 +27,15 @@ import {
   type CTLInfo,
   type ITLInfo,
 } from "@/lib/security";
-import { useDeviceStore } from "@/stores/device-store";
+import { useDeviceStore, type ConnectedDevice } from "@/stores/device-store";
 
-export default function CUCMCertificatesSection() {
-  const { isProvisioning } = useDeviceStore();
+interface CUCMCertificatesSectionProps {
+  device?: ConnectedDevice;
+}
+
+export default function CUCMCertificatesSection({ device }: CUCMCertificatesSectionProps) {
+  const { isProvisioning, getCurrentDevice } = useDeviceStore();
+  const connectedDevice = device || getCurrentDevice();
   const [ctlInfo, setCtlInfo] = React.useState<CTLInfo | null>(null);
   const [itlInfo, setItlInfo] = React.useState<ITLInfo | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -48,7 +53,10 @@ export default function CUCMCertificatesSection() {
     setError(null);
 
     try {
-      const [ctl, itl] = await Promise.all([getCTLInfo(), getITLInfo()]);
+      const [ctl, itl] = await Promise.all([
+        getCTLInfo(connectedDevice),
+        getITLInfo(connectedDevice),
+      ]);
 
       setCtlInfo(ctl);
       setItlInfo(itl);
@@ -60,13 +68,15 @@ export default function CUCMCertificatesSection() {
   };
 
   React.useEffect(() => {
-    loadCUCMInfo();
-  }, []);
+    if (connectedDevice) {
+      loadCUCMInfo();
+    }
+  }, [connectedDevice?.id]);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteCUCMCertificates();
+      await deleteCUCMCertificates(connectedDevice);
       await loadCUCMInfo();
       onDeleteOpenChange();
     } catch (err) {

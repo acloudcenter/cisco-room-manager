@@ -10,8 +10,10 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
+  Tooltip,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
+import { motion } from "framer-motion";
 
 import { capitalize } from "./device-table-utils";
 import { DeviceDrawerNavigation } from "./device-drawer-navigation";
@@ -28,11 +30,14 @@ interface DeviceDrawerProps {
   drawerAction: string;
   selectedDevice: ConnectedDevice | null;
   selectedCount: number;
+  currentDeviceIndex: number;
+  totalDevices: number;
   isProvisioningEditMode: boolean;
   onActionChange: (action: string) => void;
   onProvisioningEdit: () => void;
   onProvisioningCancel: () => void;
   onProvisioningSubmit: (formData: ProvisioningFormData) => Promise<void>;
+  onNavigateDevice: (direction: "prev" | "next") => void;
 }
 
 export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
@@ -41,15 +46,87 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
   drawerAction,
   selectedDevice,
   selectedCount,
+  currentDeviceIndex,
+  totalDevices,
   isProvisioningEditMode,
   onActionChange,
   onProvisioningEdit,
   onProvisioningCancel,
   onProvisioningSubmit,
+  onNavigateDevice,
 }) => {
   const { viewMode, setViewMode } = useDeviceStore();
   const isBulkAction = drawerAction.startsWith("bulk-");
   const actionLabel = capitalize(drawerAction.replace("bulk-", ""));
+  const showNavigation = !isBulkAction && totalDevices > 1;
+
+  // Keyboard navigation
+  React.useEffect(() => {
+    if (!isOpen || !showNavigation) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        onNavigateDevice("prev");
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        onNavigateDevice("next");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [isOpen, showNavigation, onNavigateDevice]);
+
+  // Device navigation component
+  const DeviceNavigation = () => {
+    if (!showNavigation) return null;
+
+    return (
+      <motion.div
+        animate={{ scale: 1, opacity: 1 }}
+        className="flex items-center gap-2 ml-3 px-3 py-1 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 rounded-lg border-2 border-primary-200 dark:border-primary-700 shadow-sm"
+        initial={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Tooltip content="Previous device (←)" delay={500}>
+          <Button
+            isIconOnly
+            aria-label="Previous device"
+            className="min-w-unit-8 h-unit-8 shadow-md"
+            color="primary"
+            size="sm"
+            variant="solid"
+            onPress={() => onNavigateDevice("prev")}
+          >
+            <Icon icon="solar:alt-arrow-left-bold" width={20} />
+          </Button>
+        </Tooltip>
+        <div className="flex flex-col items-center px-3 min-w-[140px]">
+          <span className="text-sm font-bold text-primary-700 dark:text-primary">
+            Device {currentDeviceIndex + 1} of {totalDevices}
+          </span>
+          <span className="text-xs text-default-600 font-medium truncate max-w-[120px]">
+            {selectedDevice?.info.unitName}
+          </span>
+        </div>
+        <Tooltip content="Next device (→)" delay={500}>
+          <Button
+            isIconOnly
+            aria-label="Next device"
+            className="min-w-unit-8 h-unit-8 shadow-md"
+            color="primary"
+            size="sm"
+            variant="solid"
+            onPress={() => onNavigateDevice("next")}
+          >
+            <Icon icon="solar:alt-arrow-right-bold" width={20} />
+          </Button>
+        </Tooltip>
+      </motion.div>
+    );
+  };
 
   // Center peek - modal view
   if (viewMode === "center") {
@@ -68,16 +145,12 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
       >
         <ModalContent className="h-[85vh] max-h-[800px] min-h-[600px]">
           <ModalHeader className="flex items-center justify-between pb-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-base font-semibold">
-                {actionLabel} Device{isBulkAction ? "s" : ""}
-              </h2>
-              {selectedDevice && (
-                <span className="text-xs text-default-500">
-                  {isBulkAction
-                    ? `${selectedCount} devices selected`
-                    : `${selectedDevice.info.unitName}`}
-                </span>
+            <div className="flex items-center gap-2 flex-1">
+              <h2 className="text-base font-semibold whitespace-nowrap">{actionLabel}</h2>
+              {isBulkAction ? (
+                <span className="text-xs text-default-500">{selectedCount} devices selected</span>
+              ) : (
+                <DeviceNavigation />
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -126,16 +199,12 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
       >
         <DrawerContent>
           <DrawerHeader className="flex items-center justify-between pb-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-base font-semibold">
-                {actionLabel} Device{isBulkAction ? "s" : ""}
-              </h2>
-              {selectedDevice && (
-                <span className="text-xs text-default-500">
-                  {isBulkAction
-                    ? `${selectedCount} devices selected`
-                    : `${selectedDevice.info.unitName}`}
-                </span>
+            <div className="flex items-center gap-2 flex-1">
+              <h2 className="text-base font-semibold whitespace-nowrap">{actionLabel}</h2>
+              {isBulkAction ? (
+                <span className="text-xs text-default-500">{selectedCount} devices selected</span>
+              ) : (
+                <DeviceNavigation />
               )}
             </div>
             <div className="flex items-center gap-2">

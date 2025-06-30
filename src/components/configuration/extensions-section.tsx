@@ -23,7 +23,7 @@ import {
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-import { ciscoConnectionService } from "@/services/cisco-connection-service";
+import { getConnector } from "@/lib/utils/get-connector";
 
 interface Extension {
   id: string;
@@ -74,7 +74,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
     setError(null);
 
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const xapi = getConnector(device);
 
       if (!xapi) {
         throw new Error("No device connection");
@@ -109,7 +109,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
 
   const viewExtension = async (extension: Extension) => {
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const xapi = getConnector(device);
 
       if (!xapi) {
         throw new Error("No device connection");
@@ -184,7 +184,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
     setUploadError(null);
 
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const xapi = getConnector(device);
 
       if (!xapi) {
         throw new Error("No device connection");
@@ -216,7 +216,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
     if (!selectedExtension) return;
 
     try {
-      const xapi = ciscoConnectionService.getConnector();
+      const xapi = getConnector(device);
 
       if (!xapi) {
         throw new Error("No device connection");

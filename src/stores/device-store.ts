@@ -36,6 +36,7 @@ interface DeviceState {
   clearConnectionError: () => void;
   getCurrentDevice: () => ConnectedDevice | null;
   getDeviceService: (deviceId: string) => any; // Returns CiscoConnectionService instance
+  updateDeviceConnectionState: (deviceId: string, state: ConnectionState) => void;
   setProvisioningState: (isProvisioning: boolean, progress?: string) => void;
   setProvisioningError: (error: string | null) => void;
   setDrawerMode: (mode: "push" | "overlay") => void;
@@ -155,6 +156,14 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     }
 
     return connectionManager.getConnection(deviceId);
+  },
+
+  updateDeviceConnectionState: (deviceId: string, state: ConnectionState) => {
+    set((prev) => ({
+      devices: prev.devices.map((device) =>
+        device.id === deviceId ? { ...device, connectionState: state } : device,
+      ),
+    }));
   },
 
   setProvisioningState: (isProvisioning: boolean, progress?: string) => {

@@ -66,7 +66,7 @@ export const DeviceDrawerContent: React.FC<DeviceDrawerContentProps> = ({
   }
 
   if (action === "security") {
-    return <SecurityDisplay />;
+    return <SecurityDisplay device={device} />;
   }
 
   // Default content for unimplemented actions

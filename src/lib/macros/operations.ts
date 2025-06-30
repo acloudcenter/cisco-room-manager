@@ -19,11 +19,16 @@ import {
   createOperationResult,
 } from "./utils";
 
+import { ConnectedDevice } from "@/stores/device-store";
+
 /**
  * Get list of all macros with their status
  */
-export async function getMacroList(options?: MacroListOptions): Promise<Macro[]> {
-  const xapi = getConnector();
+export async function getMacroList(
+  device?: ConnectedDevice,
+  options?: MacroListOptions,
+): Promise<Macro[]> {
+  const xapi = getConnector(device);
 
   try {
     // Get all macros using the correct syntax
@@ -51,7 +56,7 @@ export async function getMacroList(options?: MacroListOptions): Promise<Macro[]>
       return Promise.all(
         macros.map(async (macro) => {
           try {
-            const details = await getMacro(macro.name);
+            const details = await getMacro(device, macro.name);
 
             return { ...macro, content: details.content };
           } catch {
@@ -71,8 +76,11 @@ export async function getMacroList(options?: MacroListOptions): Promise<Macro[]>
  * Get list of known macros by trying common names
  * This is a workaround for devices that don't support macro listing
  */
-export async function probeForMacros(macroNames: string[]): Promise<Macro[]> {
-  const xapi = getConnector();
+export async function probeForMacros(
+  device?: ConnectedDevice,
+  macroNames: string[],
+): Promise<Macro[]> {
+  const xapi = getConnector(device);
   const foundMacros: Macro[] = [];
 
   await Promise.all(
@@ -108,8 +116,8 @@ export async function probeForMacros(macroNames: string[]): Promise<Macro[]> {
 /**
  * Get specific macro with content
  */
-export async function getMacro(name: string): Promise<MacroDetails> {
-  const xapi = getConnector();
+export async function getMacro(device?: ConnectedDevice, name: string): Promise<MacroDetails> {
+  const xapi = getConnector(device);
 
   validateMacroName(name);
 
@@ -134,11 +142,12 @@ export async function getMacro(name: string): Promise<MacroDetails> {
  * Save/create a macro
  */
 export async function saveMacro(
+  device?: ConnectedDevice,
   name: string,
   content: string,
   options?: MacroSaveOptions,
 ): Promise<MacroOperationResult> {
-  const xapi = getConnector();
+  const xapi = getConnector(device);
 
   validateMacroName(name);
 
@@ -156,7 +165,7 @@ export async function saveMacro(
 
     // Activate if requested
     if (options?.activate) {
-      const activateResult = await activateMacro(name);
+      const activateResult = await activateMacro(device, name);
 
       if (!activateResult.success) {
         return createOperationResult(
@@ -177,8 +186,11 @@ export async function saveMacro(
 /**
  * Activate a macro
  */
-export async function activateMacro(name: string): Promise<MacroOperationResult> {
-  const xapi = getConnector();
+export async function activateMacro(
+  device?: ConnectedDevice,
+  name: string,
+): Promise<MacroOperationResult> {
+  const xapi = getConnector(device);
 
   validateMacroName(name);
 
@@ -192,8 +204,11 @@ export async function activateMacro(name: string): Promise<MacroOperationResult>
 /**
  * Deactivate a macro
  */
-export async function deactivateMacro(name: string): Promise<MacroOperationResult> {
-  const xapi = getConnector();
+export async function deactivateMacro(
+  device?: ConnectedDevice,
+  name: string,
+): Promise<MacroOperationResult> {
+  const xapi = getConnector(device);
 
   validateMacroName(name);
 
@@ -208,17 +223,21 @@ export async function deactivateMacro(name: string): Promise<MacroOperationResul
  * Toggle macro status (helper for UI)
  */
 export async function toggleMacroStatus(
+  device?: ConnectedDevice,
   name: string,
   currentStatus: boolean,
 ): Promise<MacroOperationResult> {
-  return currentStatus ? deactivateMacro(name) : activateMacro(name);
+  return currentStatus ? deactivateMacro(device, name) : activateMacro(device, name);
 }
 
 /**
  * Remove a single macro
  */
-export async function removeMacro(name: string): Promise<MacroOperationResult> {
-  const xapi = getConnector();
+export async function removeMacro(
+  device?: ConnectedDevice,
+  name: string,
+): Promise<MacroOperationResult> {
+  const xapi = getConnector(device);
 
   validateMacroName(name);
 
@@ -232,8 +251,8 @@ export async function removeMacro(name: string): Promise<MacroOperationResult> {
 /**
  * Remove all macros (requires explicit confirmation)
  */
-export async function removeAllMacros(): Promise<MacroOperationResult> {
-  const xapi = getConnector();
+export async function removeAllMacros(device?: ConnectedDevice): Promise<MacroOperationResult> {
+  const xapi = getConnector(device);
 
   return executeMacroOperation(() => xapi.Command.Macros.Macro.RemoveAll(), "RemoveAll");
 }
@@ -241,8 +260,11 @@ export async function removeAllMacros(): Promise<MacroOperationResult> {
 /**
  * Bulk activate macros (for future use)
  */
-export async function bulkActivateMacros(names: string[]): Promise<BulkMacroOperationResult> {
-  const results = await Promise.all(names.map((name) => activateMacro(name)));
+export async function bulkActivateMacros(
+  device?: ConnectedDevice,
+  names: string[],
+): Promise<BulkMacroOperationResult> {
+  const results = await Promise.all(names.map((name) => activateMacro(device, name)));
 
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
@@ -260,8 +282,11 @@ export async function bulkActivateMacros(names: string[]): Promise<BulkMacroOper
 /**
  * Bulk deactivate macros (for future use)
  */
-export async function bulkDeactivateMacros(names: string[]): Promise<BulkMacroOperationResult> {
-  const results = await Promise.all(names.map((name) => deactivateMacro(name)));
+export async function bulkDeactivateMacros(
+  device?: ConnectedDevice,
+  names: string[],
+): Promise<BulkMacroOperationResult> {
+  const results = await Promise.all(names.map((name) => deactivateMacro(device, name)));
 
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
@@ -279,8 +304,11 @@ export async function bulkDeactivateMacros(names: string[]): Promise<BulkMacroOp
 /**
  * Bulk remove macros (for future use)
  */
-export async function bulkRemoveMacros(names: string[]): Promise<BulkMacroOperationResult> {
-  const results = await Promise.all(names.map((name) => removeMacro(name)));
+export async function bulkRemoveMacros(
+  device?: ConnectedDevice,
+  names: string[],
+): Promise<BulkMacroOperationResult> {
+  const results = await Promise.all(names.map((name) => removeMacro(device, name)));
 
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;

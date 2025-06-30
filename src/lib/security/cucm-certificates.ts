@@ -3,21 +3,17 @@
  */
 
 import type { CTLInfo, ITLInfo } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
-import { ciscoConnectionService } from "@/services/cisco-connection-service";
+import { getConnector } from "@/lib/utils/get-connector";
 
 /**
  * Get CTL (Certificate Trust List) information
  */
-export async function getCTLInfo(): Promise<CTLInfo | null> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
-
+export async function getCTLInfo(device?: ConnectedDevice): Promise<CTLInfo | null> {
   try {
-    const response = await ciscoConnectionService
-      .getConnector()
-      ?.Command.Security.Certificates.CUCM.CTL.Show();
+    const connector = getConnector(device);
+    const response = await connector.Command.Security.Certificates.CUCM.CTL.Show();
 
     if (!response) {
       return null;
@@ -52,15 +48,10 @@ export async function getCTLInfo(): Promise<CTLInfo | null> {
 /**
  * Get ITL (Identity Trust List) information
  */
-export async function getITLInfo(): Promise<ITLInfo | null> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
-
+export async function getITLInfo(device?: ConnectedDevice): Promise<ITLInfo | null> {
   try {
-    const response = await ciscoConnectionService
-      .getConnector()
-      ?.Command.Security.Certificates.CUCM.ITL.Show();
+    const connector = getConnector(device);
+    const response = await connector.Command.Security.Certificates.CUCM.ITL.Show();
 
     if (!response) {
       return null;
@@ -95,13 +86,11 @@ export async function getITLInfo(): Promise<ITLInfo | null> {
 /**
  * Delete CTL and ITL from device
  */
-export async function deleteCUCMCertificates(): Promise<void> {
-  if (!ciscoConnectionService.isConnected()) {
-    throw new Error("No active device connection");
-  }
-
+export async function deleteCUCMCertificates(device?: ConnectedDevice): Promise<void> {
   try {
-    await ciscoConnectionService.getConnector()?.Command.Security.Certificates.CUCM.CTL.Delete();
+    const connector = getConnector(device);
+
+    await connector.Command.Security.Certificates.CUCM.CTL.Delete();
   } catch (error) {
     console.error("Failed to delete CUCM certificates:", error);
     throw new Error("Failed to delete CUCM certificates (CTL/ITL)");

@@ -5,14 +5,18 @@
  */
 
 import type { ExternalManagerConfig, ProvisioningMode, ConnectivityType } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Set provisioning mode
  */
-export async function setProvisioningMode(mode: ProvisioningMode): Promise<void> {
-  const xapi = getConnector();
+export async function setProvisioningMode(
+  device: ConnectedDevice | undefined,
+  mode: ProvisioningMode,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.Mode.set(mode);
@@ -24,8 +28,11 @@ export async function setProvisioningMode(mode: ProvisioningMode): Promise<void>
 /**
  * Set provisioning connectivity type
  */
-export async function setConnectivity(connectivity: ConnectivityType): Promise<void> {
-  const xapi = getConnector();
+export async function setConnectivity(
+  device: ConnectedDevice | undefined,
+  connectivity: ConnectivityType,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.Connectivity.set(connectivity);
@@ -37,8 +44,12 @@ export async function setConnectivity(connectivity: ConnectivityType): Promise<v
 /**
  * Set provisioning credentials
  */
-export async function setCredentials(loginName: string, password: string): Promise<void> {
-  const xapi = getConnector();
+export async function setCredentials(
+  device: ConnectedDevice | undefined,
+  loginName: string,
+  password: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await Promise.all([
@@ -53,8 +64,11 @@ export async function setCredentials(loginName: string, password: string): Promi
 /**
  * Set individual login name
  */
-export async function setLoginName(loginName: string): Promise<void> {
-  const xapi = getConnector();
+export async function setLoginName(
+  device: ConnectedDevice | undefined,
+  loginName: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.LoginName.set(loginName);
@@ -66,8 +80,11 @@ export async function setLoginName(loginName: string): Promise<void> {
 /**
  * Set individual password
  */
-export async function setPassword(password: string): Promise<void> {
-  const xapi = getConnector();
+export async function setPassword(
+  device: ConnectedDevice | undefined,
+  password: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.Password.set(password);
@@ -79,12 +96,15 @@ export async function setPassword(password: string): Promise<void> {
 /**
  * Configure external manager with all settings
  */
-export async function setExternalManager(config: ExternalManagerConfig): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManager(
+  device: ConnectedDevice | undefined,
+  config: ExternalManagerConfig,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     // First set mode to ExternalManager
-    await setProvisioningMode("ExternalManager");
+    await setProvisioningMode(device, "ExternalManager");
 
     // Configure external manager settings
     const promises = [];
@@ -120,8 +140,11 @@ export async function setExternalManager(config: ExternalManagerConfig): Promise
 /**
  * Set external manager address
  */
-export async function setExternalManagerAddress(address: string): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManagerAddress(
+  device: ConnectedDevice | undefined,
+  address: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.ExternalManager.Address.set(address);
@@ -133,8 +156,11 @@ export async function setExternalManagerAddress(address: string): Promise<void> 
 /**
  * Set external manager alternate address
  */
-export async function setExternalManagerAlternateAddress(address: string): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManagerAlternateAddress(
+  device: ConnectedDevice | undefined,
+  address: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.ExternalManager.AlternateAddress.set(address);
@@ -146,8 +172,11 @@ export async function setExternalManagerAlternateAddress(address: string): Promi
 /**
  * Set external manager domain
  */
-export async function setExternalManagerDomain(domain: string): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManagerDomain(
+  device: ConnectedDevice | undefined,
+  domain: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.ExternalManager.Domain.set(domain);
@@ -159,8 +188,11 @@ export async function setExternalManagerDomain(domain: string): Promise<void> {
 /**
  * Set external manager path
  */
-export async function setExternalManagerPath(path: string): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManagerPath(
+  device: ConnectedDevice | undefined,
+  path: string,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.ExternalManager.Path.set(path);
@@ -172,8 +204,11 @@ export async function setExternalManagerPath(path: string): Promise<void> {
 /**
  * Set external manager protocol
  */
-export async function setExternalManagerProtocol(protocol: "HTTP" | "HTTPS"): Promise<void> {
-  const xapi = getConnector();
+export async function setExternalManagerProtocol(
+  device: ConnectedDevice | undefined,
+  protocol: "HTTP" | "HTTPS",
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.ExternalManager.Protocol.set(protocol);
@@ -185,8 +220,11 @@ export async function setExternalManagerProtocol(protocol: "HTTP" | "HTTPS"): Pr
 /**
  * Set TLS verification
  */
-export async function setTlsVerify(enabled: boolean): Promise<void> {
-  const xapi = getConnector();
+export async function setTlsVerify(
+  device: ConnectedDevice | undefined,
+  enabled: boolean,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.TlsVerify.set(enabled ? "On" : "Off");
@@ -198,8 +236,11 @@ export async function setTlsVerify(enabled: boolean): Promise<void> {
 /**
  * Set Webex Edge mode
  */
-export async function setWebexEdge(enabled: boolean): Promise<void> {
-  const xapi = getConnector();
+export async function setWebexEdge(
+  device: ConnectedDevice | undefined,
+  enabled: boolean,
+): Promise<void> {
+  const xapi = getConnector(device);
 
   try {
     await xapi.Config.Provisioning.WebexEdge.set(enabled ? "On" : "Off");

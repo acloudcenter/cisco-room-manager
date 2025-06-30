@@ -85,6 +85,7 @@ export default function DeviceTable() {
   });
   const [page, setPage] = React.useState(1);
   const [selectedDevice, setSelectedDevice] = React.useState<ConnectedDevice | null>(null);
+  const [selectedDeviceIndex, setSelectedDeviceIndex] = React.useState<number>(0);
   const [drawerAction, setDrawerAction] = React.useState<string>("");
   const [isProvisioningEditMode, setIsProvisioningEditMode] = React.useState(false);
   const [pendingDisconnect, setPendingDisconnect] = React.useState<{
@@ -184,10 +185,28 @@ export default function DeviceTable() {
     }
 
     // For other actions, open the drawer
+    const deviceIndex = displayDevices.findIndex((d) => d.id === device.id);
+
     setSelectedDevice(device);
+    setSelectedDeviceIndex(deviceIndex);
     setDrawerAction(action);
     setIsProvisioningEditMode(false); // Always start in view mode
     onOpen();
+  };
+
+  const navigateToDevice = (direction: "prev" | "next") => {
+    if (!displayDevices.length) return;
+
+    let newIndex = selectedDeviceIndex;
+
+    if (direction === "prev") {
+      newIndex = selectedDeviceIndex > 0 ? selectedDeviceIndex - 1 : displayDevices.length - 1;
+    } else {
+      newIndex = selectedDeviceIndex < displayDevices.length - 1 ? selectedDeviceIndex + 1 : 0;
+    }
+
+    setSelectedDeviceIndex(newIndex);
+    setSelectedDevice(displayDevices[newIndex]);
   };
 
   const handleBulkAction = (action: string) => {
@@ -423,14 +442,17 @@ export default function DeviceTable() {
 
       {/* Drawer component */}
       <DeviceDrawer
+        currentDeviceIndex={selectedDeviceIndex}
         drawerAction={drawerAction}
         drawerMode="overlay"
         isOpen={isOpen}
         isProvisioningEditMode={isProvisioningEditMode}
         selectedCount={selectedCount}
         selectedDevice={selectedDevice}
+        totalDevices={displayDevices.length}
         onActionChange={handleActionChange}
         onClose={onClose}
+        onNavigateDevice={navigateToDevice}
         onProvisioningCancel={handleProvisioningCancel}
         onProvisioningEdit={handleProvisioningEdit}
         onProvisioningSubmit={handleProvisioningSubmit}

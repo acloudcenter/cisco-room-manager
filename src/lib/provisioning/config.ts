@@ -5,14 +5,15 @@
  */
 
 import type { ProvisioningConfig } from "./types";
+import type { ConnectedDevice } from "@/stores/device-store";
 
 import { getConnector } from "./utils";
 
 /**
  * Get complete provisioning configuration from device
  */
-export async function getProvisioningConfig(): Promise<ProvisioningConfig> {
-  const xapi = getConnector();
+export async function getProvisioningConfig(device?: ConnectedDevice): Promise<ProvisioningConfig> {
+  const xapi = getConnector(device);
 
   try {
     const [

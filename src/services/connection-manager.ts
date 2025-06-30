@@ -6,6 +6,8 @@
 
 import CiscoConnectionService from "./cisco-connection-service";
 
+import { useDeviceStore } from "@/stores/device-store";
+
 export class ConnectionManager {
   private static instance: ConnectionManager;
   private connections: Map<string, CiscoConnectionService> = new Map();
@@ -38,6 +40,23 @@ export class ConnectionManager {
 
       // Create new service instance for this device
       const service = new CiscoConnectionService();
+
+      // Listen for disconnection events
+      service.on("disconnected", (host: string) => {
+        console.log(`Device disconnected: ${host}`);
+
+        // Update device state in store
+        const store = useDeviceStore.getState();
+        const device = store.devices.find((d) => d.id === deviceId);
+
+        if (device) {
+          // Update connection state
+          store.updateDeviceConnectionState(deviceId, "not-connected");
+        }
+
+        // Clean up the connection
+        this.connections.delete(deviceId);
+      });
 
       this.connections.set(deviceId, service);
     }
