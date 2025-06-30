@@ -25,7 +25,7 @@ import {
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-import { getMacroList, getMacro, saveMacro, toggleMacroStatus, removeMacro } from "@/lib/macros";
+import { getMacroList, saveMacro, toggleMacroStatus, removeMacro } from "@/lib/macros";
 
 interface MacrosSectionProps {
   device: ConnectedDevice;
@@ -36,7 +36,6 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMacro, setSelectedMacro] = useState<Macro | null>(null);
-  const [macroContent, setMacroContent] = useState("");
   const [newMacroName, setNewMacroName] = useState("");
   const [newMacroContent, setNewMacroContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -45,11 +44,6 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const {
-    isOpen: isViewOpen,
-    onOpen: onViewOpen,
-    onOpenChange: onViewOpenChange,
-  } = useDisclosure();
   const {
     isOpen: isUploadOpen,
     onOpen: onUploadOpen,
@@ -79,19 +73,6 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
       setMacros([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const viewMacro = async (macro: Macro) => {
-    try {
-      const macroDetails = await getMacro(device, macro.name);
-
-      setMacroContent(macroDetails.content);
-      setSelectedMacro(macro);
-      onViewOpen();
-    } catch (error) {
-      console.error("Error fetching macro content:", error);
-      setError(error instanceof Error ? error.message : "Failed to fetch macro content");
     }
   };
 
@@ -278,11 +259,6 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
                         />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="View macro">
-                      <Button isIconOnly size="sm" variant="light" onPress={() => viewMacro(macro)}>
-                        <Icon icon="solar:eye-outline" width={14} />
-                      </Button>
-                    </Tooltip>
                     <Tooltip content="Delete macro">
                       <Button
                         isIconOnly
@@ -304,34 +280,6 @@ export const MacrosSection: React.FC<MacrosSectionProps> = ({ device }) => {
           )}
         </CardBody>
       </Card>
-
-      {/* View Macro Modal */}
-      <Modal isOpen={isViewOpen} scrollBehavior="inside" size="3xl" onOpenChange={onViewOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">{selectedMacro?.name}</ModalHeader>
-              <ModalBody>
-                <Textarea
-                  isReadOnly
-                  classNames={{
-                    base: "font-mono",
-                    input: "text-xs",
-                  }}
-                  maxRows={30}
-                  minRows={20}
-                  value={macroContent}
-                />
-              </ModalBody>
-              <ModalFooter>
-                <Button color="primary" onPress={onClose}>
-                  Close
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
 
       {/* Upload Macro Modal */}
       <Modal
