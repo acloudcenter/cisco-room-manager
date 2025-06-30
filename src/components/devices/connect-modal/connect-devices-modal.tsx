@@ -108,9 +108,22 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
                         icon="solar:danger-triangle-outline"
                         width={18}
                       />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-danger-700">Connection Failed</p>
                         <p className="text-sm text-danger-600 mt-1">{connectionError}</p>
+                        {formData.ipAddress && (
+                          <Button
+                            className="mt-2"
+                            color="danger"
+                            size="sm"
+                            variant="flat"
+                            onPress={() => {
+                              window.open(`https://${formData.ipAddress}`, "_blank");
+                            }}
+                          >
+                            Accept Certificate
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

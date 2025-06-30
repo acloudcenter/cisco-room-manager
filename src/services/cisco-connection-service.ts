@@ -108,7 +108,7 @@ class CiscoConnectionService {
           "DX80 etc: Make sure xConfiguration NetworkServices WebSocket is FollowHTTPService",
         );
 
-        if (error.message) {
+        if (error && error.message) {
           // eslint-disable-next-line no-console
           console.error("\nError details:", error.message);
         }

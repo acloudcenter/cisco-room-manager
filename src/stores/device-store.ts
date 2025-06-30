@@ -59,7 +59,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       const connected = await ciscoConnectionService.connect(credentials);
 
       if (!connected) {
-        throw new Error("Failed to establish connection - check device logs for details");
+        throw new Error(
+          "Connection failed. Please check: 1) Your credentials are correct, 2) The device's certificate is trusted (visit https://[device-ip] to accept it), 3) You're on the same network as the device",
+        );
       }
 
       // Wait a bit for device info to be populated
