@@ -66,19 +66,27 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
         throw new Error("No device connection");
       }
 
-      // Get list of UI extensions (panels, buttons, web apps)
+      // Get list of all UI extensions
       const extensionList = await xapi.command("UserInterface.Extensions.List");
 
-      if (extensionList?.Extensions) {
-        const extensionArray = Array.isArray(extensionList.Extensions)
-          ? extensionList.Extensions
-          : [extensionList.Extensions];
-        const extensionsData = extensionArray.map((ext: any) => ({
-          id: ext.PanelId || ext.Id,
-          name: ext.Name || ext.PanelId || "Unnamed Extension",
-          version: ext.Type || "Panel",
-          status: "Active",
-        }));
+      console.log("Extension list response:", extensionList); // Debug log
+
+      // Extensions are under Extensions.Panel
+      const panels = extensionList?.Extensions?.Panel || [];
+
+      if (panels && (Array.isArray(panels) || typeof panels === "object")) {
+        const items = Array.isArray(panels) ? panels : [panels];
+
+        const extensionsData = items.map((panel: any) => {
+          console.log("Panel item:", panel); // Debug log to see the structure
+
+          return {
+            id: panel.PanelId || panel.Id || panel.Name || "unknown",
+            name: panel.Name || "Unnamed Extension",
+            version: panel.ActivityType || panel.Type || "Panel",
+            status: panel.Location || "Active",
+          };
+        });
 
         setExtensions(extensionsData);
       } else {
@@ -150,7 +158,7 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
           <div className="flex items-center gap-2">
             <Icon icon="solar:widget-2-outline" width={16} />
             <h4 className="text-xs font-medium">UI Extensions</h4>
-            <span className="text-xs text-default-500">(Panels, Buttons, Web Apps)</span>
+            <span className="text-xs text-default-500">(Panels & Buttons)</span>
           </div>
         </CardHeader>
         <Divider />
@@ -181,14 +189,12 @@ export const ExtensionsSection: React.FC<ExtensionsSectionProps> = ({ device }) 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-medium truncate">{extension.name}</p>
-                      <span className="text-xs text-default-500">v{extension.version}</span>
-                      <Chip
-                        color={extension.status === "Active" ? "success" : "default"}
-                        size="sm"
-                        variant="flat"
-                      >
+                      <Chip size="sm" variant="flat">
                         {extension.status}
                       </Chip>
+                      {extension.version && (
+                        <span className="text-xs text-default-500">{extension.version}</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 ml-2">
