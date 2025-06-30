@@ -150,7 +150,25 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
               {isBulkAction ? (
                 <span className="text-xs text-default-500">{selectedCount} devices selected</span>
               ) : (
-                <DeviceNavigation />
+                <>
+                  <DeviceNavigation />
+                  {selectedDevice && (
+                    <Tooltip content="Open device web interface" delay={500}>
+                      <Button
+                        isIconOnly
+                        as="a"
+                        className="ml-2"
+                        href={`https://${selectedDevice.credentials.host}`}
+                        rel="noopener noreferrer"
+                        size="sm"
+                        target="_blank"
+                        variant="flat"
+                      >
+                        <Icon icon="heroicons:arrow-top-right-on-square-16-solid" width={16} />
+                      </Button>
+                    </Tooltip>
+                  )}
+                </>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -204,7 +222,25 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
               {isBulkAction ? (
                 <span className="text-xs text-default-500">{selectedCount} devices selected</span>
               ) : (
-                <DeviceNavigation />
+                <>
+                  <DeviceNavigation />
+                  {selectedDevice && (
+                    <Tooltip content="Open device web interface" delay={500}>
+                      <Button
+                        isIconOnly
+                        as="a"
+                        className="ml-2"
+                        href={`https://${selectedDevice.credentials.host}`}
+                        rel="noopener noreferrer"
+                        size="sm"
+                        target="_blank"
+                        variant="flat"
+                      >
+                        <Icon icon="heroicons:arrow-top-right-on-square-16-solid" width={16} />
+                      </Button>
+                    </Tooltip>
+                  )}
+                </>
               )}
             </div>
             <div className="flex items-center gap-2">

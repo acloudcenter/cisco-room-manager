@@ -281,7 +281,16 @@ export default function DeviceTable() {
       case "ipAddress":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small font-mono">{device.ipAddress}</p>
+            <Tooltip content="Open device web interface" delay={500}>
+              <a
+                className="text-bold text-small font-mono text-primary hover:underline"
+                href={`https://${device.ipAddress}`}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {device.ipAddress}
+              </a>
+            </Tooltip>
           </div>
         );
       case "type":
