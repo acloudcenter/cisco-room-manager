@@ -228,6 +228,17 @@ export default function DeviceTable() {
     }
   };
 
+  // Get selected devices for bulk operations
+  const getSelectedDevices = React.useMemo(() => {
+    if (!selectedKeys || selectedKeys === "all") {
+      return displayDevices;
+    }
+
+    const selectedIds = Array.from(selectedKeys as Set<React.Key>);
+
+    return displayDevices.filter((device) => selectedIds.includes(device.id));
+  }, [selectedKeys, displayDevices]);
+
   const handleProvisioningSubmit = async (formData: ProvisioningFormData) => {
     if (!selectedDevice) {
       return;
@@ -497,13 +508,17 @@ export default function DeviceTable() {
       {/* Drawer component */}
       <DeviceDrawer
         currentDeviceIndex={selectedDeviceIndex}
+        currentPageEnd={Math.min(10, displayDevices.length)} // TODO: Implement pagination
+        currentPageStart={1} // TODO: Implement pagination
         drawerAction={drawerAction}
         drawerMode="overlay"
         isOpen={isOpen}
         isProvisioningEditMode={isProvisioningEditMode}
         selectedCount={selectedCount}
         selectedDevice={selectedDevice}
+        selectedDevices={drawerAction.startsWith("bulk-") ? getSelectedDevices : undefined}
         totalDevices={displayDevices.length}
+        totalDevicesInPool={displayDevices.length} // For now, same as totalDevices
         onActionChange={handleActionChange}
         onClose={onClose}
         onNavigateDevice={navigateToDevice}

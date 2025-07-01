@@ -18,6 +18,8 @@ import {
   TableRow,
   TableCell,
   Chip,
+  Progress,
+  Card,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -50,9 +52,16 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
   const [csvError, setCsvError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string>("");
+  const [isBulkConnecting, setIsBulkConnecting] = useState(false);
+  const [bulkConnectionProgress, setBulkConnectionProgress] = useState<{
+    current: number;
+    total: number;
+    errors: string[];
+  }>({ current: 0, total: 0, errors: [] });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { connectDevice, isConnecting, connectionError, clearConnectionError } = useDeviceStore();
+  const { connectDevice, isConnecting, connectionError, clearConnectionError, devices } =
+    useDeviceStore();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -75,6 +84,70 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
       onOpenChange(false);
     } catch {
       // Error is handled by the store and will be displayed in UI
+    }
+  };
+
+  const handleBulkConnect = async () => {
+    setIsBulkConnecting(true);
+    setBulkConnectionProgress({ current: 0, total: csvDevices.length, errors: [] });
+
+    const errors: string[] = [];
+    const currentlyConnected = devices.length;
+    const availableSlots = 10 - currentlyConnected;
+
+    if (availableSlots <= 0) {
+      setCsvError(
+        "Connection limit reached. Please disconnect some devices before connecting more.",
+      );
+      setIsBulkConnecting(false);
+
+      return;
+    }
+
+    // Only connect up to the available slots
+    const devicesToConnect = csvDevices.slice(0, availableSlots);
+
+    if (devicesToConnect.length < csvDevices.length) {
+      setCsvError(
+        `Can only connect ${availableSlots} more device(s) due to 10-device limit. ${csvDevices.length - availableSlots} device(s) will not be connected.`,
+      );
+    }
+
+    for (let i = 0; i < devicesToConnect.length; i++) {
+      const device = devicesToConnect[i];
+
+      setBulkConnectionProgress((prev) => ({ ...prev, current: i + 1 }));
+
+      try {
+        await connectDevice({
+          host: device.ipAddress,
+          username: device.username,
+          password: device.password,
+        });
+      } catch (error) {
+        const errorMsg = `Failed to connect to ${device.systemName} (${device.ipAddress})`;
+
+        errors.push(errorMsg);
+        setBulkConnectionProgress((prev) => ({
+          ...prev,
+          errors: [...prev.errors, errorMsg],
+        }));
+      }
+    }
+
+    setIsBulkConnecting(false);
+
+    if (errors.length === 0) {
+      // Success - close modal and reset
+      setCsvDevices([]);
+      setCsvError(null);
+      setFileName("");
+      onOpenChange(false);
+    } else {
+      // Show error summary
+      setCsvError(
+        `Connected ${devicesToConnect.length - errors.length} of ${devicesToConnect.length} devices. ${errors.length} failed.`,
+      );
     }
   };
 
@@ -457,6 +530,28 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {/* Connection limit warning */}
+                    {devices.length > 0 && (
+                      <Card className="p-3 bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800">
+                        <div className="flex items-center gap-2">
+                          <Icon
+                            className="text-warning-600 dark:text-warning-400"
+                            icon="solar:info-circle-bold"
+                            width={20}
+                          />
+                          <div className="text-sm">
+                            <span className="font-medium text-warning-800 dark:text-warning-300">
+                              {devices.length}/10 devices connected.
+                            </span>
+                            <span className="text-warning-700 dark:text-warning-400 ml-1">
+                              {10 - devices.length} slot
+                              {10 - devices.length !== 1 ? "s" : ""} available.
+                            </span>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">{fileName}</p>
@@ -471,11 +566,40 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
                           setCsvDevices([]);
                           setFileName("");
                           setCsvError(null);
+                          setBulkConnectionProgress({ current: 0, total: 0, errors: [] });
                         }}
                       >
                         Clear
                       </Button>
                     </div>
+
+                    {/* Progress display during bulk connection */}
+                    {isBulkConnecting && (
+                      <div className="space-y-2">
+                        <Progress
+                          className="mb-2"
+                          color="primary"
+                          size="sm"
+                          value={
+                            (bulkConnectionProgress.current / bulkConnectionProgress.total) * 100
+                          }
+                        />
+                        <p className="text-xs text-default-500 text-center">
+                          Connecting device {bulkConnectionProgress.current} of{" "}
+                          {bulkConnectionProgress.total}...
+                        </p>
+                        {bulkConnectionProgress.errors.length > 0 && (
+                          <div className="mt-2 text-xs text-danger">
+                            <p className="font-medium mb-1">Connection errors:</p>
+                            {bulkConnectionProgress.errors.map((error, idx) => (
+                              <p key={idx} className="ml-2">
+                                • {error}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Device preview table */}
                     <div className="max-h-[300px] overflow-y-auto">
@@ -545,15 +669,19 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
             <Button
               className="bg-primary text-primary-foreground"
               color="primary"
-              endContent={<Icon icon="solar:arrow-right-outline" width={16} />}
-              isDisabled={csvDevices.length === 0}
-              onPress={() => {
-                // For now, just show what will be connected
-                console.log("Will connect to devices:", csvDevices);
-                // TODO: Implement bulk connection logic
-              }}
+              endContent={!isBulkConnecting && <Icon icon="solar:arrow-right-outline" width={16} />}
+              isDisabled={csvDevices.length === 0 || isBulkConnecting}
+              onPress={handleBulkConnect}
             >
-              Connect {csvDevices.length} Device{csvDevices.length !== 1 ? "s" : ""}
+              {isBulkConnecting ? (
+                <>
+                  Connecting... {bulkConnectionProgress.current}/{bulkConnectionProgress.total}
+                </>
+              ) : (
+                <>
+                  Connect {csvDevices.length} Device{csvDevices.length !== 1 ? "s" : ""}
+                </>
+              )}
             </Button>
           )}
         </ModalFooter>

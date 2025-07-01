@@ -29,9 +29,13 @@ interface DeviceDrawerProps {
   drawerMode: "overlay" | "push";
   drawerAction: string;
   selectedDevice: ConnectedDevice | null;
+  selectedDevices?: ConnectedDevice[];
   selectedCount: number;
   currentDeviceIndex: number;
   totalDevices: number;
+  totalDevicesInPool?: number;
+  currentPageStart?: number;
+  currentPageEnd?: number;
   isProvisioningEditMode: boolean;
   onActionChange: (action: string) => void;
   onProvisioningEdit: () => void;
@@ -45,9 +49,13 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
   onClose,
   drawerAction,
   selectedDevice,
+  selectedDevices,
   selectedCount,
   currentDeviceIndex,
   totalDevices,
+  totalDevicesInPool,
+  currentPageStart,
+  currentPageEnd,
   isProvisioningEditMode,
   onActionChange,
   onProvisioningEdit,
@@ -146,9 +154,15 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
         <ModalContent className="h-[85vh] max-h-[800px] min-h-[600px]">
           <ModalHeader className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2 flex-1">
-              <h2 className="text-base font-semibold whitespace-nowrap">{actionLabel}</h2>
+              <h2 className="text-base font-semibold whitespace-nowrap">
+                {isBulkAction ? `Bulk ${actionLabel}` : actionLabel}
+              </h2>
               {isBulkAction ? (
-                <span className="text-xs text-default-500">{selectedCount} devices selected</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-default-500 bg-default-100 px-2 py-1 rounded-full">
+                    {selectedCount} devices selected
+                  </span>
+                </div>
               ) : (
                 <>
                   <DeviceNavigation />
@@ -188,8 +202,12 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
               {isBulkAction ? null : <Divider />}
               <DeviceDrawerContent
                 action={drawerAction}
+                currentPageEnd={currentPageEnd}
+                currentPageStart={currentPageStart}
                 device={selectedDevice}
                 isProvisioningEditMode={isProvisioningEditMode}
+                selectedDevices={selectedDevices}
+                totalDevicesInPool={totalDevicesInPool}
                 onProvisioningCancel={onProvisioningCancel}
                 onProvisioningEdit={onProvisioningEdit}
                 onProvisioningSubmit={onProvisioningSubmit}
@@ -218,9 +236,15 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
         <DrawerContent>
           <DrawerHeader className="flex items-center justify-between pb-3">
             <div className="flex items-center gap-2 flex-1">
-              <h2 className="text-base font-semibold whitespace-nowrap">{actionLabel}</h2>
+              <h2 className="text-base font-semibold whitespace-nowrap">
+                {isBulkAction ? `Bulk ${actionLabel}` : actionLabel}
+              </h2>
               {isBulkAction ? (
-                <span className="text-xs text-default-500">{selectedCount} devices selected</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-default-500 bg-default-100 px-2 py-1 rounded-full">
+                    {selectedCount} devices selected
+                  </span>
+                </div>
               ) : (
                 <>
                   <DeviceNavigation />
@@ -262,8 +286,12 @@ export const DeviceDrawer: React.FC<DeviceDrawerProps> = ({
 
               <DeviceDrawerContent
                 action={drawerAction}
+                currentPageEnd={currentPageEnd}
+                currentPageStart={currentPageStart}
                 device={selectedDevice}
                 isProvisioningEditMode={isProvisioningEditMode}
+                selectedDevices={selectedDevices}
+                totalDevicesInPool={totalDevicesInPool}
                 onProvisioningCancel={onProvisioningCancel}
                 onProvisioningEdit={onProvisioningEdit}
                 onProvisioningSubmit={onProvisioningSubmit}

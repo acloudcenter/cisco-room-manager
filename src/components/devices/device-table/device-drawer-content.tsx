@@ -2,6 +2,7 @@ import React from "react";
 import { Icon } from "@iconify/react";
 
 import { capitalize } from "./device-table-utils";
+import { BulkDeviceSummary } from "./bulk-device-summary";
 
 import { ConnectedDevice } from "@/stores/device-store";
 import {
@@ -17,6 +18,10 @@ import { SecurityDisplay } from "@/components/security";
 interface DeviceDrawerContentProps {
   action: string;
   device: ConnectedDevice | null;
+  selectedDevices?: ConnectedDevice[];
+  totalDevicesInPool?: number;
+  currentPageStart?: number;
+  currentPageEnd?: number;
   isProvisioningEditMode: boolean;
   onProvisioningEdit: () => void;
   onProvisioningCancel: () => void;
@@ -26,11 +31,47 @@ interface DeviceDrawerContentProps {
 export const DeviceDrawerContent: React.FC<DeviceDrawerContentProps> = ({
   action,
   device,
+  selectedDevices,
+  totalDevicesInPool,
+  currentPageStart,
+  currentPageEnd,
   isProvisioningEditMode,
   onProvisioningEdit,
   onProvisioningCancel,
   onProvisioningSubmit,
 }) => {
+  const isBulkAction = action.startsWith("bulk-");
+
+  // Handle bulk actions
+  if (isBulkAction && selectedDevices && selectedDevices.length > 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <BulkDeviceSummary
+          currentPageEnd={currentPageEnd}
+          currentPageStart={currentPageStart}
+          selectedDevices={selectedDevices}
+          totalInPool={totalDevicesInPool}
+        />
+
+        {/* Bulk action content will be implemented here */}
+        <div className="p-4 bg-default-100 rounded-lg">
+          <p className="text-center text-default-600">
+            Bulk {capitalize(action.replace("bulk-", ""))} functionality coming soon.
+          </p>
+          <div className="mt-4 flex justify-center">
+            <Icon
+              className="text-default-400"
+              height={48}
+              icon="heroicons:squares-2x2"
+              width={48}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle single device actions
   if (!device) {
     return (
       <div className="flex flex-col gap-4">
