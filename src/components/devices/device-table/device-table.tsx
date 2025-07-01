@@ -93,6 +93,7 @@ export default function DeviceTable() {
     device?: ConnectedDevice;
     count?: number;
   } | null>(null);
+  const [isDisconnecting, setIsDisconnecting] = React.useState(false);
 
   // Get devices from store
   const displayDevices = devices;
@@ -219,10 +220,10 @@ export default function DeviceTable() {
       return;
     }
 
-    // For other actions, open the drawer
-    if (displayDevices.length > 0) {
+    // For "actions", open the drawer with bulk-status as default
+    if (action === "actions" && displayDevices.length > 0) {
       setSelectedDevice(displayDevices[0]);
-      setDrawerAction(`bulk-${action}`);
+      setDrawerAction("bulk-status");
       onOpen();
     }
   };
@@ -263,6 +264,35 @@ export default function DeviceTable() {
   const handleActionChange = (action: string) => {
     setDrawerAction(action);
     setIsProvisioningEditMode(false);
+  };
+
+  const handleDisconnectConfirm = () => {
+    if (!pendingDisconnect || isDisconnecting) return;
+
+    setIsDisconnecting(true);
+
+    // Small delay to show loading state
+    setTimeout(() => {
+      if (pendingDisconnect.device) {
+        // Single device disconnect
+        disconnectDevice(pendingDisconnect.device.id);
+      } else if (pendingDisconnect.count && pendingDisconnect.count > 0) {
+        // Bulk disconnect - get selected device IDs
+        const selectedDeviceIds =
+          selectedKeys === "all"
+            ? displayDevices.map((d) => d.id)
+            : Array.from(selectedKeys).map((key) => key.toString());
+
+        // Disconnect each selected device
+        selectedDeviceIds.forEach((id) => disconnectDevice(id));
+      }
+
+      // Clean up
+      setSelectedKeys(new Set([])); // Clear selection
+      onConfirmClose(); // Close modal
+      setPendingDisconnect(null); // Reset pending state
+      setIsDisconnecting(false);
+    }, 300); // Small delay for UI feedback
   };
 
   const renderCell = React.useCallback((device: DeviceTableRowData, columnKey: React.Key) => {
@@ -492,39 +522,43 @@ export default function DeviceTable() {
             </div>
           </ModalHeader>
           <ModalBody>
-            <p className="text-default-600">
-              {pendingDisconnect?.device
-                ? `Are you sure you want to disconnect from ${pendingDisconnect.device.info.unitName}?`
-                : `Are you sure you want to disconnect from ${pendingDisconnect?.count || 0} device${
-                    (pendingDisconnect?.count || 0) > 1 ? "s" : ""
-                  }?`}
-            </p>
+            {pendingDisconnect?.device ? (
+              <p className="text-default-600">
+                Are you sure you want to disconnect from{" "}
+                <strong>{pendingDisconnect.device.info.unitName}</strong>?
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-default-600">
+                  Are you sure you want to disconnect from {pendingDisconnect?.count || 0} device
+                  {(pendingDisconnect?.count || 0) !== 1 ? "s" : ""}?
+                </p>
+                {pendingDisconnect?.count && pendingDisconnect.count <= 5 && (
+                  <div className="bg-default-100 rounded-lg p-3">
+                    <p className="text-xs font-medium mb-2">Selected devices:</p>
+                    <ul className="text-xs text-default-500 space-y-1">
+                      {(selectedKeys === "all"
+                        ? displayDevices
+                        : displayDevices.filter((d) => selectedKeys.has(d.id))
+                      )
+                        .slice(0, 5)
+                        .map((device) => (
+                          <li key={device.id}>
+                            • {device.info.unitName} ({device.credentials.host})
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onConfirmClose}>
+            <Button isDisabled={isDisconnecting} variant="light" onPress={onConfirmClose}>
               Cancel
             </Button>
-            <Button
-              color="danger"
-              onPress={() => {
-                if (pendingDisconnect?.device) {
-                  // Disconnect specific device
-                  disconnectDevice(pendingDisconnect.device.id);
-                } else if (pendingDisconnect?.count && pendingDisconnect.count > 1) {
-                  // Disconnect selected devices (bulk action)
-                  const selectedDeviceIds = Array.from(selectedKeys).map((key) => key.toString());
-
-                  selectedDeviceIds.forEach((id) => disconnectDevice(id));
-                } else {
-                  // Disconnect all devices (fallback)
-                  disconnectDevice();
-                }
-                setSelectedKeys(new Set([])); // Clear selection
-                onConfirmClose();
-                setPendingDisconnect(null);
-              }}
-            >
-              Disconnect
+            <Button color="danger" isLoading={isDisconnecting} onPress={handleDisconnectConfirm}>
+              {isDisconnecting ? "Disconnecting..." : "Disconnect"}
             </Button>
           </ModalFooter>
         </ModalContent>

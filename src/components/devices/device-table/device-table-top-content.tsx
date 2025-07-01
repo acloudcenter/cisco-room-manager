@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@heroui/react";
+import { Icon } from "@iconify/react";
 
 import { SearchIcon, ChevronDownIcon } from "./device-table-icons";
 import { capitalize, columns, statusOptions } from "./device-table-utils";
@@ -63,21 +64,25 @@ export const DeviceTableTopContent: React.FC<DeviceTableTopContentProps> = ({
                 isDisabled={selectedCount === 0}
                 variant={selectedCount > 0 ? "solid" : "flat"}
               >
-                Actions {selectedCount > 0 ? `(${selectedCount})` : ""}
+                Bulk Actions {selectedCount > 0 ? `(${selectedCount})` : ""}
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Bulk Actions">
-              <DropdownItem key="bulk-status" onPress={() => onBulkAction("status")}>
-                Status Selected
+              <DropdownItem
+                key="bulk-actions"
+                startContent={<Icon icon="heroicons:bolt-16-solid" width={16} />}
+                onPress={() => onBulkAction("actions")}
+              >
+                Actions
               </DropdownItem>
-              <DropdownItem key="bulk-configure" onPress={() => onBulkAction("configure")}>
-                Configure Selected
-              </DropdownItem>
-              <DropdownItem key="bulk-provision" onPress={() => onBulkAction("provision")}>
-                Provision Selected
-              </DropdownItem>
-              <DropdownItem key="bulk-disconnect" onPress={() => onBulkAction("disconnect")}>
-                Disconnect Selected
+              <DropdownItem
+                key="bulk-disconnect"
+                className="text-danger"
+                color="danger"
+                startContent={<Icon icon="heroicons:x-circle-20-solid" width={16} />}
+                onPress={() => onBulkAction("disconnect")}
+              >
+                Disconnect
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
