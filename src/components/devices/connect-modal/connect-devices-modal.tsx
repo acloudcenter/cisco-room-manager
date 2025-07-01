@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Modal,
   ModalContent,
@@ -11,6 +11,13 @@ import {
   Input,
   Tabs,
   Tab,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Chip,
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
@@ -21,6 +28,15 @@ interface ConnectDevicesModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface CSVDevice {
+  systemName: string;
+  ipAddress: string;
+  username: string;
+  password: string;
+  uuid?: string;
+  software?: string;
+}
+
 export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDevicesModalProps) {
   const [activeTab, setActiveTab] = useState("single");
   const [formData, setFormData] = useState({
@@ -28,6 +44,13 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
     username: "",
     password: "",
   });
+
+  // CSV upload state
+  const [csvDevices, setCsvDevices] = useState<CSVDevice[]>([]);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { connectDevice, isConnecting, connectionError, clearConnectionError } = useDeviceStore();
 
@@ -59,7 +82,144 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
     // Reset form and close modal
     setFormData({ ipAddress: "", username: "", password: "" });
     clearConnectionError();
+    setCsvDevices([]);
+    setCsvError(null);
+    setFileName("");
     onOpenChange(false);
+  };
+
+  // CSV parsing function with strict validation
+  const parseCSV = (csvText: string): CSVDevice[] => {
+    const lines = csvText.trim().split("\n");
+    const devices: CSVDevice[] = [];
+
+    // Expected headers exactly as they should be
+    const expectedHeaders = [
+      "system name",
+      "ip address",
+      "username",
+      "password",
+      "uuid",
+      "software",
+    ];
+
+    if (lines.length === 0) {
+      throw new Error("CSV file is empty");
+    }
+
+    // Get the first line headers
+    const headerLine = lines[0].toLowerCase().trim();
+    const headers = headerLine.split(",").map((h) => h.trim());
+
+    // Validate headers match exactly
+    const hasValidHeaders = expectedHeaders.every((expected, index) => headers[index] === expected);
+
+    if (!hasValidHeaders) {
+      throw new Error(
+        'Invalid CSV format. Headers must be exactly: "system name,ip address,username,password,uuid,software"',
+      );
+    }
+
+    // Parse data rows starting from line 1 (after headers)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (!line) continue;
+
+      // Split by comma but handle quoted values
+      const parts = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
+      const cleanParts = parts.map((part) => part.replace(/^"|"$/g, "").trim());
+
+      // Validate we have at least the required fields (first 4)
+      if (cleanParts.length < 4) {
+        throw new Error(
+          `Row ${i + 1} is missing required fields. Each row must have at least: system name, ip address, username, and password`,
+        );
+      }
+
+      // Validate IP address format
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$|^[a-zA-Z0-9.-]+$/;
+
+      if (!ipRegex.test(cleanParts[1])) {
+        throw new Error(`Row ${i + 1} has invalid IP address or hostname: "${cleanParts[1]}"`);
+      }
+
+      // Validate software type if provided
+      const validSoftware = ["CE", "RoomOS", "TC", "TE"];
+
+      if (cleanParts[5] && !validSoftware.includes(cleanParts[5])) {
+        throw new Error(
+          `Row ${i + 1} has invalid software type: "${cleanParts[5]}". Must be one of: ${validSoftware.join(", ")}`,
+        );
+      }
+
+      devices.push({
+        systemName: cleanParts[0],
+        ipAddress: cleanParts[1],
+        username: cleanParts[2],
+        password: cleanParts[3],
+        uuid: cleanParts[4] || undefined,
+        software: cleanParts[5] || undefined,
+      });
+    }
+
+    if (devices.length === 0) {
+      throw new Error(
+        "No valid devices found in CSV. Make sure your CSV has data rows after the headers.",
+      );
+    }
+
+    return devices;
+  };
+
+  // File handling
+  const handleFileSelect = (file: File) => {
+    if (!file.name.endsWith(".csv")) {
+      setCsvError("Please select a CSV file");
+
+      return;
+    }
+
+    setFileName(file.name);
+    setCsvError(null);
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const devices = parseCSV(text);
+
+        setCsvDevices(devices);
+      } catch (error) {
+        // Show the specific validation error message
+        setCsvError(error instanceof Error ? error.message : "Failed to parse CSV file");
+        console.error("CSV parse error:", error);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+
+    if (file) {
+      handleFileSelect(file);
+    }
   };
 
   return (
@@ -71,7 +231,7 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
         footer: "border-t border-divider",
       }}
       isOpen={isOpen}
-      size="lg"
+      size="2xl"
       onOpenChange={onOpenChange}
     >
       <ModalContent>
@@ -193,18 +353,166 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
             </Tab>
 
             <Tab key="multiple" title="Multiple Devices">
-              <div className="space-y-6 mt-6 min-h-[280px] flex flex-col justify-center">
-                <div className="text-center">
-                  <Icon
-                    className="text-default-400 mx-auto mb-4"
-                    icon="solar:upload-outline"
-                    width={48}
-                  />
-                  <p className="text-default-500">Multiple device connection coming soon</p>
-                  <p className="text-sm text-default-400 mt-2">
-                    Upload CSV or configure network discovery
-                  </p>
-                </div>
+              <div className="space-y-6 mt-6">
+                {/* File input hidden */}
+                <input
+                  ref={fileInputRef}
+                  accept=".csv"
+                  className="hidden"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+
+                    if (file) handleFileSelect(file);
+                  }}
+                />
+
+                {/* Upload area or device list */}
+                {csvDevices.length === 0 ? (
+                  <div
+                    className={`
+                      border-2 border-dashed rounded-lg p-8 text-center transition-all
+                      ${
+                        isDragging
+                          ? "border-primary bg-primary-50 dark:bg-primary-900/20"
+                          : "border-default-300 bg-default-50 dark:bg-default-50/10"
+                      }
+                      ${csvError ? "border-danger bg-danger-50 dark:bg-danger-900/20" : ""}
+                    `}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
+                    <Icon
+                      className={`mx-auto mb-4 ${csvError ? "text-danger" : "text-default-400"}`}
+                      icon={
+                        csvError ? "solar:danger-triangle-outline" : "solar:cloud-upload-outline"
+                      }
+                      width={48}
+                    />
+
+                    {csvError ? (
+                      <div className="max-w-md mx-auto">
+                        <p className="text-danger font-medium mb-2">Error: {csvError}</p>
+                        <div className="text-xs text-default-500 mb-4">
+                          <p>Please ensure your CSV:</p>
+                          <ul className="list-disc list-inside mt-1">
+                            <li>
+                              Has headers exactly as: system name,ip
+                              address,username,password,uuid,software
+                            </li>
+                            <li>Contains valid IP addresses or hostnames</li>
+                            <li>Has at least the first 4 required fields</li>
+                            <li>Uses valid software types: CE, RoomOS, TC, or TE</li>
+                          </ul>
+                        </div>
+                        <Button
+                          className="mt-2"
+                          size="sm"
+                          variant="flat"
+                          onPress={() => {
+                            setCsvError(null);
+                            fileInputRef.current?.click();
+                          }}
+                        >
+                          Try Again
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-default-700 font-medium">
+                          Drop CSV file here or click to browse
+                        </p>
+                        <p className="text-sm text-default-500 mt-2">
+                          Format: system name, ip address, username, password, uuid, software
+                        </p>
+                        <div className="flex items-center gap-3 justify-center mt-4">
+                          <Button
+                            size="sm"
+                            variant="flat"
+                            onPress={() => fileInputRef.current?.click()}
+                          >
+                            Browse Files
+                          </Button>
+                          <Button
+                            size="sm"
+                            startContent={<Icon icon="solar:download-outline" width={16} />}
+                            variant="light"
+                            onPress={() => {
+                              // Download CSV template from public folder
+                              const link = document.createElement("a");
+
+                              link.href = "/device-template.csv";
+                              link.download = "device-template.csv";
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            Download Template
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{fileName}</p>
+                        <p className="text-xs text-default-500">
+                          {csvDevices.length} device{csvDevices.length !== 1 ? "s" : ""} found
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="light"
+                        onPress={() => {
+                          setCsvDevices([]);
+                          setFileName("");
+                          setCsvError(null);
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+
+                    {/* Device preview table */}
+                    <div className="max-h-[300px] overflow-y-auto">
+                      <Table
+                        aria-label="CSV devices preview"
+                        classNames={{
+                          wrapper: "max-h-[300px]",
+                        }}
+                      >
+                        <TableHeader>
+                          <TableColumn>System Name</TableColumn>
+                          <TableColumn>IP Address</TableColumn>
+                          <TableColumn>Username</TableColumn>
+                          <TableColumn>Software</TableColumn>
+                        </TableHeader>
+                        <TableBody>
+                          {csvDevices.map((device, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="text-xs">{device.systemName}</TableCell>
+                              <TableCell className="text-xs font-mono">
+                                {device.ipAddress}
+                              </TableCell>
+                              <TableCell className="text-xs">{device.username}</TableCell>
+                              <TableCell>
+                                {device.software && (
+                                  <Chip size="sm" variant="flat">
+                                    {device.software}
+                                  </Chip>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
               </div>
             </Tab>
           </Tabs>
@@ -214,24 +522,40 @@ export default function ConnectDevicesModal({ isOpen, onOpenChange }: ConnectDev
           <Button className="text-default-600" variant="light" onPress={handleCancel}>
             Cancel
           </Button>
-          <Button
-            className="bg-primary text-primary-foreground"
-            color="primary"
-            endContent={
-              isConnecting ? (
-                <Icon className="animate-spin" icon="solar:loading-outline" width={16} />
-              ) : (
-                <Icon icon="solar:arrow-right-outline" width={16} />
-              )
-            }
-            isDisabled={
-              !formData.ipAddress || !formData.username || !formData.password || isConnecting
-            }
-            isLoading={isConnecting}
-            onPress={handleConnect}
-          >
-            {isConnecting ? "Connecting..." : "Connect"}
-          </Button>
+          {activeTab === "single" ? (
+            <Button
+              className="bg-primary text-primary-foreground"
+              color="primary"
+              endContent={
+                isConnecting ? (
+                  <Icon className="animate-spin" icon="solar:loading-outline" width={16} />
+                ) : (
+                  <Icon icon="solar:arrow-right-outline" width={16} />
+                )
+              }
+              isDisabled={
+                !formData.ipAddress || !formData.username || !formData.password || isConnecting
+              }
+              isLoading={isConnecting}
+              onPress={handleConnect}
+            >
+              {isConnecting ? "Connecting..." : "Connect"}
+            </Button>
+          ) : (
+            <Button
+              className="bg-primary text-primary-foreground"
+              color="primary"
+              endContent={<Icon icon="solar:arrow-right-outline" width={16} />}
+              isDisabled={csvDevices.length === 0}
+              onPress={() => {
+                // For now, just show what will be connected
+                console.log("Will connect to devices:", csvDevices);
+                // TODO: Implement bulk connection logic
+              }}
+            >
+              Connect {csvDevices.length} Device{csvDevices.length !== 1 ? "s" : ""}
+            </Button>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>

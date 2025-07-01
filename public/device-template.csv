@@ -1,0 +1,6 @@
+system name,ip address,username,password,uuid,software
+Conference Room A,192.168.1.100,admin,password123,ABC123-DEF456-GHI789,RoomOS
+Board Room,192.168.1.101,admin,password123,XYZ789-UVW456-RST123,RoomOS
+Training Room 1,192.168.1.102,admin,password123,QWE456-ASD789-ZXC123,CE
+Executive Office,192.168.1.103,admin,password123,POI789-UYT456-REW123,RoomOS
+Huddle Space,192.168.1.104,admin,password123,LKJ123-HGF456-DSA789,CE
