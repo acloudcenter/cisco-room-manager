@@ -1,6 +1,5 @@
-# Cisco Room Manager
-
-A modern React-based web application for managing Cisco video conferencing devices through direct browser communication via WebSocket connections. This tool enables IT administrators and users to monitor, configure, and provision Cisco room systems locally without requiring centralized management infrastructure.
+# Cisco Room Manager - DEMO
+This React-based web app is designed to showcase Cisco device management from the browser locally. Its designed for managing Cisco video conferencing devices through direct browser communication via WebSocket connections. This tool enables IT administrators and users to monitor, configure, and provision Cisco room systems locally without requiring centralized management infrastructure.
 
 ## About This Project
 
