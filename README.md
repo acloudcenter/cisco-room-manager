@@ -1,46 +1,108 @@
-# Cisco Room Manager - DEMO
-This React-based web app is designed to showcase Cisco device management from the browser locally. Its designed for managing Cisco video conferencing devices through direct browser communication via WebSocket connections. This tool enables IT administrators and users to monitor, configure, and provision Cisco room systems locally without requiring centralized management infrastructure.
+# Cisco Room Manager
 
-## About This Project
+**Note: This is a personal project currently in development. Some features are still being implemented and tested.**
 
-Cisco Room Manager is a work-in-progress application that provides a comprehensive interface for managing Cisco video conferencing devices directly from your browser. The application communicates with devices using the Cisco CE JSXAPI over secure WebSocket connections, enabling real-time device monitoring, configuration management, and provisioning workflows without any sensative data leaving your network. No need for any downloads.
+## About
 
-## Key Features
+This is a web-based management tool for Cisco video conferencing devices. I built this to explore how WebSocket connections can enable real-time device management directly from the browser, without requiring additional infrastructure or downloads.
+
+The application connects to Cisco devices using their JSXAPI over WebSocket, allowing administrators to configure, monitor, and provision room systems through a single interface. All features may not work as intended as this is a work in progress. However, feel free to contribute or borrow any code you find helpful!
+
+## Features
 
 ### Device Management
 
-- Real-time WebSocket connections to Cisco CE devices
-- Device status monitoring with different status queries
-- Configuration reading and management with configuration functions
-- Complete provisioning workflow supporting Webex, TMS, and external manager modes
+- Connect to multiple devices simultaneously (up to 10)
+- Real-time status monitoring through WebSocket connections
+- Bulk device import via CSV files
+- Quick navigation between connected devices
 
-### Provisioning Capabilities
+### Configuration
 
-- Switch between Webex and TMS provisioning modes
-- Configure external manager settings (address, domain, path, protocol)
-- Manage device credentials and connectivity settings
-- Handle security configurations including TLS verification
+- System settings management
+- Macro upload and control
+- UI extension management
+- Security certificate configuration
 
-### Monitoring and Status
+### Provisioning
 
-- System information and health monitoring
-- Audio and video status tracking
-- Call status and standby state monitoring
-- Network and connectivity status
+- Support for Webex and TMS provisioning
+- External manager configuration
+- Network and protocol settings
+- TLS verification handling
 
-## Technology Stack
+### Monitoring
 
-- **React 18.3.1** with TypeScript for type-safe development
-- **Vite 5.2.0** for fast development and building
-- **HeroUI v2** for modern UI components with individual imports
-- **Tailwind CSS 3.4.16** for utility-first styling
-- **Framer Motion 11.15.0** for smooth animations
-- **Zustand 5.0.5** for lightweight state management
-- **React Router DOM 6.23.0** for client-side routing
-- **Cisco CE JSXAPI** for direct device communication
+- System health and diagnostics
+- Call statistics and quality metrics
+- Audio/video subsystem status
+- Network performance data
 
-## Getting Started - Still a work-in-progress
+## Tech Stack
+
+- React 18.3 with TypeScript
+- Vite for build tooling
+- HeroUI component library
+- Tailwind CSS for styling
+- Framer Motion for animations
+- Zustand for state management
+- React Router for navigation
+- JSXAPI for Cisco device communication
+
+## Installation
+
+Prerequisites:
+
+- Node.js 18 or higher
+- Network access to Cisco devices (no VPN)
+- Admin credentials for target devices
+
+Setup:
+
+```bash
+git clone https://github.com/yourusername/cisco-room-manager.git
+cd cisco-room-manager
+npm install
+npm run dev
+```
+
+Device configuration:
+
+1. Enable WebSocket on the Cisco device (Setup > NetworkServices > WebSocket = "FollowHTTPService")
+2. Accept the device's certificate by visiting https://[device-ip] in your browser
+3. Use admin credentials when connecting through the app
+
+## Current Status
+
+This project is under active development. I'm currently working on:
+
+- Improving error handling and connection recovery
+- Adding test coverage
+- Expanding device management capabilities
+- Refining the user interface based on testing
+
+Known limitations:
+
+- Browser WebSocket limit restricts concurrent connections to 10 devices
+- Each device requires manual certificate acceptance
+- Some features depend on specific Cisco software versions
+
+## Planned Features
+
+- Device discovery automation
+- Configuration templates for batch updates
+- Data export and analytics
+- Configuration backup and restore
+- Additional security controls
+
+## Contributing
+
+This is currently a personal project for learning and demonstration purposes. While I'm not accepting pull requests at this time, I welcome feedback and bug reports through GitHub issues.
 
 ## License
 
-Licensed under the [MIT license](https://github.com/frontio-ai/vite-template/blob/main/LICENSE).
+MIT License - see LICENSE file for details.
+
+---
+
+Disclaimer: This project is not affiliated with or endorsed by Cisco Systems. It's an independent tool created for educational purposes.

@@ -75,6 +75,7 @@ export default function SidebarLayout({
           <h1 className="text-base font-light text-foreground">Room Manager</h1>
         </div>
         <p className="text-xs text-default-500 mt-1 px-2">An open source tool for Cisco Devices</p>
+        <p className="text-s text-default-500 mt-2 px-2">THIS PROJECT IS FOR TESTING PURPOSES</p>
 
         <Spacer y={8} />
 
